@@ -29,16 +29,22 @@ ESPHome configuration for TX Ultimate touch panel with Home Assistant failover s
 
 Just create one YAML file with your settings and ESPHome will load everything else from GitHub automatically.
 
-### Quick Start (3 Steps)
+### Quick Start (5 Steps)
 
-#### Step 1: Create your device YAML file
+#### Step 1: Open ESPHome Dashboard
 
-```bash
-cd /config/esphome
-nano living_room_tx.yaml  # or any name you want
-```
+1. In Home Assistant, go to **Settings** → **Add-ons**
+2. Open **ESPHome**
+3. Click **"OPEN WEB UI"**
 
-#### Step 2: Paste this configuration and customize
+#### Step 2: Create a new device
+
+1. Click **"+ NEW DEVICE"** (bottom right)
+2. Click **"SKIP"** (we'll use our own configuration)
+3. Enter a name: `living-room-tx`
+4. Click **"SKIP"** again (we'll paste the full config)
+
+#### Step 3: Paste this configuration
 
 ```yaml
 substitutions:
@@ -89,24 +95,40 @@ wifi:
 ##### My customizations - End #####
 ```
 
-#### Step 3: Create/update your secrets.yaml
+Click **"SAVE"** and then **"CLOSE"**
+
+#### Step 4: Configure secrets
+
+1. In the ESPHome dashboard, click **"SECRETS"** (top right, key icon)
+2. Add your credentials:
 
 ```yaml
-# secrets.yaml
+# Add these lines to your secrets
 wifi_ssid: "YourWiFiName"
 wifi_password: "YourWiFiPassword"
-ap_pass: "FallbackPassword"
-api_key: "your-32-char-api-key"     # Generate with: openssl rand -base64 32
+ap_pass: "FallbackPassword123"
+api_key: "GENERATE_A_32_CHAR_KEY"    # Click the shuffle icon to generate
 ota_pass: "your-ota-password"
 ```
 
-#### Step 4: Flash your device
+3. Click **"SAVE"**
 
-```bash
-esphome run living_room_tx.yaml
-```
+#### Step 5: Install to device
+
+1. Click the **three dots (⋮)** on your device card
+2. Click **"Install"**
+3. Choose your installation method:
+   - **"Wireless"** (if device already has ESPHome)
+   - **"Plug into this computer"** (for first flash via USB)
+4. Follow the on-screen instructions
 
 **Done!** ✅ The complete configuration loads automatically from GitHub.
+
+---
+
+### 📺 Video Guide
+
+For a visual walkthrough, watch this [ESPHome Installation Guide](https://www.youtube.com/watch?v=iufph4dF3YU) (official Home Assistant tutorial).
 
 ---
 
