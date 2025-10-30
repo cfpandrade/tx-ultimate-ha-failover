@@ -25,25 +25,67 @@ ESPHome configuration for TX Ultimate touch panel with Home Assistant failover s
 
 ## Installation
 
-You can install this configuration either using the automated script or manually.
+**NEW! 🚀 Remote Installation** - No need to clone the repo!
 
-### Option A: Automated Installation (Recommended)
+### Option A: Remote Installation (Easiest - Recommended)
+
+**The base configuration loads automatically from GitHub!**
+
+1. **Create your device YAML file:**
 
 ```bash
 cd /config/esphome
-git clone https://github.com/YOUR_USERNAME/tx-ultimate-ha-failover.git
-cd tx-ultimate-ha-failover
-./install.sh
+nano my_tx_ultimate.yaml
 ```
 
-The installer will guide you through:
-- Setting up WiFi credentials
-- Configuring device name and IP
-- Setting Home Assistant IP
-- Configuring location for nightlight
-- Generating encryption keys
+2. **Paste this minimal configuration:**
 
-### Option B: Manual Installation
+```yaml
+substitutions:
+  name: 'living_tx'
+  friendly_name: "Living-TX"
+  ha_ip: "192.168.1.100"           # Your HA IP
+  device_ip: "192.168.1.101"        # Device IP
+  relay_count: "2"                  # Number of relays
+
+  # ... other substitutions (see tx_ultimate_example.yaml)
+
+# Load base configuration from GitHub
+packages:
+  remote_package:
+    url: https://github.com/cfpandrade/tx-ultimate-ha-failover
+    ref: main
+    files: [tx_ultimate_base.yaml]
+    refresh: 300s
+```
+
+3. **Create secrets.yaml:**
+
+```yaml
+wifi_ssid: "YourWiFi"
+wifi_password: "YourPassword"
+ap_pass: "FallbackPass"
+api_key: "your-api-key"
+ota_pass: "ota-pass"
+```
+
+4. **Flash your device:**
+
+```bash
+esphome run my_tx_ultimate.yaml
+```
+
+**That's it!** The complete configuration loads automatically from GitHub.
+
+**Benefits:**
+- ✅ **No git clone needed** - Configuration loads remotely
+- ✅ **Always up-to-date** - Auto-checks for updates every 5 minutes
+- ✅ **Minimal file** - Only your customizations needed
+- ✅ **Easy updates** - Change `ref` to different versions
+
+**Example:** See [tx_ultimate_example.yaml](tx_ultimate_example.yaml) for full configuration template
+
+### Option B: Local Installation with Script
 
 #### 1. Clone this repository
 
