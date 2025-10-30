@@ -241,6 +241,12 @@ globals:
     restore_value: no
     initial_value: "0"
 
+  # Flag para indicar que el sistema ya arrancó completamente
+  - id: system_ready
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
 binary_sensor:
   - platform: template
     name: "Touchfield 1"
@@ -1003,22 +1009,28 @@ script:
 # WATCHDOG WiFi y Home Assistant (usando ping)
 # ========================================
 interval:
-  # Log inicial al arrancar
-  - interval: 10min
+  # Marca el sistema como listo después de 2 minutos (permite tiempo para boot y conexión)
+  - interval: 2min
     then:
       - lambda: |-
           static bool first_execution = true;
           if (first_execution) {
             first_execution = false;
-            ESP_LOGD("living_tx.proxy", "First execution completed. System ready.");
+            id(system_ready) = true;
+            ESP_LOGI("system", "System ready. Watchdogs now active.");
           }
 
-  # Reinicia si pierde WiFi
+  # Reinicia si pierde WiFi (solo después de que el sistema esté listo)
   - interval: ${wifi_check_interval}
     then:
       - lambda: |-
+          // Solo actúa si el sistema ya arrancó completamente
+          if (!id(system_ready)) {
+            return;
+          }
+
           if (!WiFi.isConnected()) {
-            ESP_LOGW("living_tx.wifi", "WiFi lost. Restarting...");
+            ESP_LOGW("living_tx.wifi", "WiFi lost after successful boot. Restarting...");
             ESP.restart();
           }
 
@@ -1028,6 +1040,11 @@ interval:
       - lambda: |-
           static bool ha_down = false;
           static int ha_down_count = 0;
+
+          // Solo actúa si el sistema ya arrancó completamente
+          if (!id(system_ready)) {
+            return;
+          }
 
           // Primero verifica si hay WiFi
           if (!WiFi.isConnected()) {
