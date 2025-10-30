@@ -2,9 +2,83 @@
 
 All notable changes to the TX Ultimate HA Failover project.
 
-## [2.0.0] - 2024-10-30
+## [1.1.0] - 2024-10-30
 
-### 🚀 Major Improvements
+### 🐛 Critical Bug Fix
+
+#### Boot Loop Prevention
+- **Fixed infinite boot loop issue** caused by watchdog checking WiFi before connection established
+- Added `system_ready` global flag to delay watchdog activation
+- Watchdogs now activate **2 minutes after boot** to allow proper WiFi connection
+- Added protection checks in both WiFi and HA watchdogs
+
+**What was happening:**
+- WiFi watchdog checked connection immediately after boot
+- Device restarted before WiFi could connect
+- Created infinite restart loop
+
+**Solution:**
+```yaml
+globals:
+  - id: system_ready
+    type: bool
+    initial_value: "false"
+
+interval:
+  # System becomes ready after 2 minutes
+  - interval: 2min
+    then:
+      - lambda: |-
+          id(system_ready) = true;
+          ESP_LOGI("system", "System ready. Watchdogs now active.");
+
+  # Watchdogs only run if system is ready
+  - interval: ${wifi_check_interval}
+    then:
+      - lambda: |-
+          if (!id(system_ready)) return;  // Skip if not ready yet
+          // ... rest of watchdog logic
+```
+
+### 📝 Changes
+
+- Added `system_ready` flag to globals
+- Modified WiFi watchdog to check `system_ready` before acting
+- Modified HA watchdog to check `system_ready` before acting
+- Added "System ready" log message at 2-minute mark
+- Updated both `esphome_tx_sonoff.yaml` and `tx_ultimate_failover.yaml`
+
+### 🔍 Technical Details
+
+**Boot Timeline:**
+```
+0s    → Device boots
+0-120s → Watchdogs INACTIVE (allows WiFi connection)
+120s   → system_ready = true, "System ready" log message
+120s+  → Watchdogs ACTIVE (normal monitoring)
+```
+
+### ⚡ Impact
+
+- ✅ **Eliminates boot loops** completely
+- ✅ **Safe first boot** - Device has time to connect
+- ✅ **No configuration changes** needed - works automatically
+- ✅ **Better logging** - Clear "System ready" indicator
+
+### 🔄 Migration
+
+**No action required!** This is a bug fix that applies automatically.
+
+Just reflash your device with:
+```bash
+esphome run tx_ultimate_failover.yaml
+```
+
+---
+
+## [1.0.0] - 2024-10-30 - Initial Release
+
+### 🚀 Major Features
 
 #### Ping-Based Monitoring
 - **Replaced TCP connection checks with ICMP ping** for Home Assistant monitoring
@@ -81,11 +155,7 @@ No breaking changes - all existing configurations remain compatible!
 
 New optional features work out of the box with default settings.
 
----
-
-## [1.0.0] - Initial Release
-
-### Features
+### Additional Features
 
 - WiFi watchdog with auto-restart
 - Home Assistant failover detection
@@ -168,8 +238,8 @@ sensor:
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 2.0.0 | 2024-10-30 | Ping monitoring, Bluetooth Proxy |
-| 1.0.0 | 2024-10-29 | Initial release |
+| 1.1.0 | 2024-10-30 | **Critical fix: Boot loop prevention** |
+| 1.0.0 | 2024-10-30 | Initial release with ping monitoring and Bluetooth Proxy |
 
 ---
 
