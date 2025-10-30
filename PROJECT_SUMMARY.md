@@ -108,8 +108,8 @@ vibra_time: 400ms                 # Haptic feedback
 
 ### Location
 ```yaml
-latitude: "53.47450213193437°"
-longitude: "-6.246157438775786°"
+latitude: "40.7128°"
+longitude: "-74.0060°"
 ```
 
 ## How Failover Works

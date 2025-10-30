@@ -85,8 +85,8 @@ substitutions:
   # ================================
   # LOCATION FOR NIGHTLIGHT
   # ================================
-  latitude: "53.47450213193437°"
-  longitude: "-6.246157438775786°"
+  latitude: "40.7128°"
+  longitude: "-74.0060°"
 
   # ================================
   # PIN ASSIGNMENTS (TX Ultimate standard - don't change unless needed)

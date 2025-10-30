@@ -180,9 +180,9 @@ substitutions:
   friendly_name: "Living-TX"
 
   # Network settings
-  ha_ip: "192.168.50.168"          # Your Home Assistant IP
+  ha_ip: "192.168.1.100"          # Your Home Assistant IP
   ha_port: "8123"                   # HA port
-  device_ip: "192.168.35.56"        # Fixed IP for this device
+  device_ip: "192.168.1.101"        # Fixed IP for this device
 
   # Monitoring intervals
   wifi_check_interval: "600s"       # WiFi watchdog check
@@ -209,9 +209,9 @@ For more configuration examples, see [CONFIGURATION_EXAMPLES.md](CONFIGURATION_E
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ha_ip` | `192.168.50.168` | Home Assistant IP address |
+| `ha_ip` | `192.168.1.100` | Home Assistant IP address |
 | `ha_port` | `8123` | Home Assistant port |
-| `device_ip` | `192.168.35.56` | Fixed IP for this device |
+| `device_ip` | `192.168.1.101` | Fixed IP for this device |
 | `wifi_check_interval` | `600s` | How often to check WiFi (10 min) |
 | `ha_check_interval` | `300s` | How often to check HA (5 min) |
 | `relay_count` | `2` | Number of relays (1-3) |
@@ -231,8 +231,8 @@ For proper nightlight automation, set your location:
 
 ```yaml
 substitutions:
-  latitude: "53.47450213193437°"
-  longitude: "-6.246157438775786°"
+  latitude: "40.7128°"
+  longitude: "-74.0060°"
 ```
 
 ## How It Works
@@ -283,7 +283,7 @@ tx-ultimate-ha-failover/
 
 ### Home Assistant not detected
 - Verify `ha_ip` is correct in substitutions
-- Test connectivity: `ping 192.168.50.168` from device network
+- Test connectivity: `ping 192.168.1.100` from device network
 - Check HA port (default 8123)
 
 ### Touch panel not responding
