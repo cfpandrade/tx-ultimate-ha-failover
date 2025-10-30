@@ -25,67 +25,126 @@ ESPHome configuration for TX Ultimate touch panel with Home Assistant failover s
 
 ## Installation
 
-**NEW! 🚀 Remote Installation** - No need to clone the repo!
+**🚀 Remote Installation - No git clone needed!**
 
-### Option A: Remote Installation (Easiest - Recommended)
+Just create one YAML file with your settings and ESPHome will load everything else from GitHub automatically.
 
-**The base configuration loads automatically from GitHub!**
+### Quick Start (3 Steps)
 
-1. **Create your device YAML file:**
+#### Step 1: Create your device YAML file
 
 ```bash
 cd /config/esphome
-nano my_tx_ultimate.yaml
+nano living_room_tx.yaml  # or any name you want
 ```
 
-2. **Paste this minimal configuration:**
+#### Step 2: Paste this configuration and customize
 
 ```yaml
 substitutions:
-  name: 'living_tx'
-  friendly_name: "Living-TX"
-  ha_ip: "192.168.1.100"           # Your HA IP
-  device_ip: "192.168.1.101"        # Device IP
-  relay_count: "2"                  # Number of relays
+  ###### CHANGE ME START ######
 
-  # ... other substitutions (see tx_ultimate_example.yaml)
+  # Device Settings
+  name: "living-tx"
+  friendly_name: "Living Room TX"
 
-# Load base configuration from GitHub
+  # Network Settings
+  ha_ip: "192.168.1.100"              # Your Home Assistant IP
+  device_ip: "192.168.1.101"          # Fixed IP for this device
+
+  # Hardware
+  relay_count: "2"                    # Number of relays: 1, 2, or 3
+
+  # Location (for automatic nightlight)
+  latitude: "40.7128°"                # Your latitude
+  longitude: "-74.0060°"              # Your longitude
+
+  ###### CHANGE ME END ######
+
+###### DO NOT CHANGE ANYTHING BELOW! ######
+
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: main
+    ref: main  # Use 'main' for latest or 'v1.2.1' for specific version
     files: [tx_ultimate_base.yaml]
     refresh: 300s
+
+##### My customizations - Start #####
+
+# API with encryption
+api:
+  encryption:
+    key: !secret api_key
+
+# OTA updates
+ota:
+  - platform: esphome
+    password: !secret ota_pass
+
+# WiFi with fixed IP (optional but recommended)
+wifi:
+  use_address: ${device_ip}
+
+##### My customizations - End #####
 ```
 
-3. **Create secrets.yaml:**
+#### Step 3: Create/update your secrets.yaml
 
 ```yaml
-wifi_ssid: "YourWiFi"
-wifi_password: "YourPassword"
-ap_pass: "FallbackPass"
-api_key: "your-api-key"
-ota_pass: "ota-pass"
+# secrets.yaml
+wifi_ssid: "YourWiFiName"
+wifi_password: "YourWiFiPassword"
+ap_pass: "FallbackPassword"
+api_key: "your-32-char-api-key"     # Generate with: openssl rand -base64 32
+ota_pass: "your-ota-password"
 ```
 
-4. **Flash your device:**
+#### Step 4: Flash your device
 
 ```bash
-esphome run my_tx_ultimate.yaml
+esphome run living_room_tx.yaml
 ```
 
-**That's it!** The complete configuration loads automatically from GitHub.
+**Done!** ✅ The complete configuration loads automatically from GitHub.
 
-**Benefits:**
-- ✅ **No git clone needed** - Configuration loads remotely
+---
+
+### What You Get
+
+- ✅ **No git clone needed** - Configuration loads remotely from GitHub
 - ✅ **Always up-to-date** - Auto-checks for updates every 5 minutes
-- ✅ **Minimal file** - Only your customizations needed
-- ✅ **Easy updates** - Change `ref` to different versions
+- ✅ **Minimal file** - Only ~60 lines to customize (vs 1000+ lines)
+- ✅ **Easy updates** - Change `ref: main` to `ref: v1.2.1` for specific versions
+- ✅ **Multiple devices** - Create one file per device with different settings
 
-**Example:** See [tx_ultimate_example.yaml](tx_ultimate_example.yaml) for full configuration template
+---
 
-### Option B: Local Installation with Script
+### Advanced: Full Customization
+
+Want to customize colors, timings, or other settings? See the complete example:
+
+**[tx_ultimate_example.yaml](tx_ultimate_example.yaml)** - Full configuration template with all options
+
+Common customizations:
+
+```yaml
+substitutions:
+  # LED Colors (RGB 0-100)
+  button_color: "{0,0,90}"           # Blue when relay is on
+  nightlight_color: "{80,70,0}"      # Warm white
+  touch_color: "{0,100,100}"         # Cyan when touched
+
+  # Monitoring Intervals
+  wifi_check_interval: "600s"        # Check WiFi every 10 min
+  ha_check_interval: "300s"          # Check HA every 5 min
+```
+
+---
+
+### Alternative: Local Installation with Git Clone
+
+If you prefer to have a local copy or want to modify the base configuration:
 
 #### 1. Clone this repository
 
