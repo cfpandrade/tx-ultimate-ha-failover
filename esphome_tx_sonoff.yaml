@@ -61,8 +61,8 @@ substitutions:
   ha_online_color_b: "1.0"
 
   # Location for sunrise/sunset
-  latitude: "53.47450213193437°"
-  longitude: "-6.246157438775786°"
+  latitude: "40.7128°"
+  longitude: "-74.0060°"
 
   relay_1_pin: GPIO18
   relay_2_pin: GPIO17
