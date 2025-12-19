@@ -41,6 +41,7 @@ substitutions:
   # Failover behavior
   ha_failover_turn_on_lights: "true"  # true for living room, false for bedrooms
   ha_failover_nightlight_color: "{100,0,0}"  # Red alert when HA offline
+  ha_heartbeat_interval: "60s"  # Check HA connection every 60s (default)
 
   # Location (for nightlight)
   latitude: !secret latitude
@@ -198,6 +199,14 @@ ha_failover_nightlight_color: "{100,0,0}"  # Red alert
 ha_failover_nightlight_color: "{100,50,0}"  # Orange (less alarming)
 ha_failover_nightlight_color: "{0,0,100}"  # Blue (informational)
 ```
+
+**Heartbeat check interval** (how often to check HA connection):
+```yaml
+ha_heartbeat_interval: "60s"   # Default: check every 60 seconds
+ha_heartbeat_interval: "30s"   # More frequent (faster failover detection)
+ha_heartbeat_interval: "120s"  # Less frequent (reduce network traffic)
+```
+*Note: Failover activates after 10 consecutive failures. With 60s interval, that's ~10 minutes offline.*
 
 ### LED Colors
 

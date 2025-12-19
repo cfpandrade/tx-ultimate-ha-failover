@@ -975,7 +975,7 @@ interval:
                 format: "WiFi desconectado por >3 minutos, reiniciando..."
             - lambda: "ESP.restart();"
 
-  # Heartbeat con Home Assistant cada 60 segundos
-  - interval: 60s
+  # Heartbeat con Home Assistant
+  - interval: ${ha_heartbeat_interval}
     then:
       - script.execute: check_ha_heartbeat
