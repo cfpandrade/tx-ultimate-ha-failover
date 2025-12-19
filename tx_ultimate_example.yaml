@@ -1,7 +1,7 @@
 # TX Ultimate HA Failover - User Configuration Example
 #
-# This is the ONLY file you need to customize!
-# The base configuration is loaded automatically from GitHub.
+# This is an example configuration file showing all available options.
+# Copy this file and customize it for your specific device.
 #
 # Quick Start:
 # 1. Copy this file to your ESPHome folder
@@ -11,6 +11,8 @@
 # 5. Flash: esphome run living_room_tx.yaml
 
 substitutions:
+  ###### CHANGE ME START ######
+
   # ================================
   # DEVICE CONFIGURATION
   # ================================
@@ -18,19 +20,10 @@ substitutions:
   friendly_name: "Living-TX"
 
   # ================================
-  # NETWORK SETTINGS
+  # HOME ASSISTANT SETTINGS
   # ================================
-  ha_ip: "192.168.50.168"           # Your Home Assistant IP
-  ha_port: "8123"                    # Home Assistant port
-  device_ip: "192.168.35.56"         # Fixed IP for this device
-  ap_ssid: "Tx-Living"               # Fallback AP name
-
-  # ================================
-  # MONITORING INTERVALS
-  # ================================
-  wifi_check_interval: "600s"        # WiFi watchdog check (10 min)
-  ha_check_interval: "300s"          # HA availability check (5 min)
-  nightlight_check_interval: "5"     # Minutes to check nightlight
+  ha_url: "https://192.168.50.168:8123"   # Your Home Assistant URL
+  ha_api_token: "Bearer YOUR_LONG_LIVED_TOKEN_HERE"  # See instructions below
 
   # ================================
   # HARDWARE CONFIGURATION
@@ -45,9 +38,9 @@ substitutions:
   button_brightness: "0"
   button_color: "{0,0,90}"           # Button active color (blue)
 
-  nightlight: "on"
+  nightlight: "on"                   # "on" or "off"
   nightlight_brightness: "0.2"
-  nightlight_color: "{80,70,0}"      # Nightlight color (warm)
+  nightlight_color: "{80,70,0}"      # Nightlight color (warm white)
 
   touch_brightness: "1"
   touch_color: "{0,100,100}"         # Touch feedback (cyan)
@@ -69,24 +62,16 @@ substitutions:
   swipe_right_color: "{100,0,70}"    # Swipe right color (purple)
   swipe_right_effect: ""
 
-  # Status indicator colors (0.0-1.0)
-  no_wifi_color_r: "1.0"             # Yellow when no WiFi
-  no_wifi_color_g: "1.0"
-  no_wifi_color_b: "0.0"
-
-  ha_down_color_r: "1.0"             # Red when HA down
-  ha_down_color_g: "0.0"
-  ha_down_color_b: "0.0"
-
-  ha_online_color_r: "0.0"           # Cyan when HA back online
-  ha_online_color_g: "0.75"
-  ha_online_color_b: "1.0"
+  # ================================
+  # FAILOVER CONFIGURATION
+  # ================================
+  ha_failover_turn_on_lights: "true"  # true for living/dining, false for bedrooms
 
   # ================================
   # LOCATION FOR NIGHTLIGHT
   # ================================
-  latitude: "40.7128°"
-  longitude: "-74.0060°"
+  latitude: !secret latitude
+  longitude: !secret longitude
 
   # ================================
   # PIN ASSIGNMENTS (TX Ultimate standard - don't change unless needed)
@@ -111,23 +96,69 @@ substitutions:
 
   touchpanel_power_pin: GPIO5
 
+  ###### CHANGE ME END ######
+
+##### DO NOT CHANGE ANYTHING BELOW! #####
+
 # ================================
 # LOAD BASE CONFIGURATION FROM GITHUB
 # ================================
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: main  # Use 'main' for latest, or specific tag like 'v1.1.0'
+    ref: main  # Use 'main' for latest, or specific tag like 'v1.3.1'
     files: [tx_ultimate_base.yaml]
     refresh: 300s  # Check for updates every 5 minutes
 
+##### My customization - Start #####
+
+# API with encryption
+api:
+  encryption:
+    key: !secret api_key
+
+# OTA updates
+ota:
+  - platform: esphome
+    password: !secret ota_pass
+
+# WiFi configuration
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 192.168.35.56  # Optional: Set your fixed IP here
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Tx-Living"
+    password: !secret ap_pass
+
+##### My customization - End #####
+
 # ================================
-# SECRETS (create secrets.yaml in same folder)
+# HOW TO GET YOUR HOME ASSISTANT TOKEN
 # ================================
-# Example secrets.yaml:
+# 1. Go to your Home Assistant profile (click your username in bottom left)
+# 2. Scroll down to "Long-Lived Access Tokens"
+# 3. Click "CREATE TOKEN"
+# 4. Give it a name like "TX Living Room"
+# 5. Copy the token (it's VERY long, starts with "eyJ...")
+# 6. Format: "Bearer eyJ..." and add to secrets.yaml:
+#    tx_status_api_token: "Bearer eyJ..."
+#
+# Then in this file, use:
+#    ha_api_token: !secret tx_status_api_token
+
+# ================================
+# SECRETS.YAML EXAMPLE
+# ================================
+# Create a file called 'secrets.yaml' in the same folder with:
 #
 # wifi_ssid: "YourWiFiSSID"
 # wifi_password: "YourWiFiPassword"
 # ap_pass: "FallbackPassword123"
-# api_key: "your-32-character-api-key-here"
+# api_key: "your-32-character-api-key-here"  # Generate in ESPHome dashboard
 # ota_pass: "your-ota-password"
+# latitude: "40.7128°"
+# longitude: "-74.0060°"
+# tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
