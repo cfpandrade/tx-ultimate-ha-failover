@@ -257,7 +257,7 @@ switch:
   - platform: gpio
     id: relay_1
     name: "${friendly_name} L1"
-    pin: ${relay_1_pin}
+    pin: GPIO18  # TX Ultimate hardware pin
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       then:
@@ -269,7 +269,7 @@ switch:
   - platform: gpio
     id: relay_2
     name: "${friendly_name} L2"
-    pin: ${relay_2_pin}
+    pin: GPIO17  # TX Ultimate hardware pin
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       then:
@@ -281,7 +281,7 @@ switch:
   - platform: gpio
     id: relay_3
     name: "${friendly_name} L3"
-    pin: ${relay_3_pin}
+    pin: GPIO27  # TX Ultimate hardware pin
     restore_mode: RESTORE_DEFAULT_OFF
     on_turn_on:
       then:
@@ -292,7 +292,7 @@ switch:
 
   - platform: gpio
     id: vibra
-    pin: ${vibra_motor_pin}
+    pin: GPIO21  # TX Ultimate hardware pin
     name: "${friendly_name} Vibration"
     restore_mode: ALWAYS_OFF
     on_turn_on:
@@ -301,7 +301,7 @@ switch:
 
   - platform: gpio
     id: pa_power
-    pin: ${pa_power_pin}
+    pin: GPIO26  # TX Ultimate hardware pin
     name: "PA Power"
     internal: true
     restore_mode: ALWAYS_ON
@@ -309,7 +309,7 @@ switch:
   - platform: gpio
     name: "touch panel power"
     pin:
-      number: ${touchpanel_power_pin}
+      number: GPIO5  # TX Ultimate hardware pin
       inverted: true
     id: touch_power
     internal: true
@@ -347,7 +347,7 @@ light:
   - platform: neopixelbus
     type: GRB
     variant: WS2811
-    pin: ${led_pin}
+    pin: GPIO13  # TX Ultimate hardware pin
     num_leds: 28
     name: "NeoPixel Light"
     id: leds
@@ -435,19 +435,19 @@ media_player:
     id: media_out
     name: ${friendly_name} Player
     dac_type: external
-    i2s_dout_pin: ${audio_sdata_pin}
+    i2s_dout_pin: GPIO15  # TX Ultimate hardware pin
     i2s_audio_id: audio_i2s
     i2s_comm_fmt: lsb
     mode: mono
 
 i2s_audio:
   id: audio_i2s
-  i2s_lrclk_pin: ${audio_lrclk_pin}
-  i2s_bclk_pin: ${audio_bclk_pin}
+  i2s_lrclk_pin: GPIO4   # TX Ultimate hardware pin
+  i2s_bclk_pin: GPIO2    # TX Ultimate hardware pin
 
 uart:
-  tx_pin: ${uart_tx_pin}
-  rx_pin: ${uart_rx_pin}
+  tx_pin: GPIO19  # TX Ultimate hardware pin
+  rx_pin: GPIO22  # TX Ultimate hardware pin
   id: my_uart
   baud_rate: 115200
   data_bits: 8

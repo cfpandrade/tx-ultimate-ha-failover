@@ -71,23 +71,10 @@ substitutions:
   # Timings
   vibra_time: 400ms
   button_on_time: 500ms
-
-  # Pins (TX Ultimate standard - don't change)
-  relay_1_pin: GPIO18
-  relay_2_pin: GPIO17
-  relay_3_pin: GPIO27
-  relay_4_pin: GPIO23
-  vibra_motor_pin: GPIO21
-  pa_power_pin: GPIO26
-  led_pin: GPIO13
-  status_led_pin: GPIO33
-  uart_tx_pin: GPIO19
-  uart_rx_pin: GPIO22
-  audio_lrclk_pin: GPIO4
-  audio_bclk_pin: GPIO2
-  audio_sdata_pin: GPIO15
-  touchpanel_power_pin: GPIO5
   ###### CHANGE ME END ######
+
+  # NOTE: Hardware pin assignments are fixed in TX Ultimate hardware
+  # and defined in tx_ultimate_base.yaml - no need to configure them!
 
 ##### DO NOT CHANGE BELOW! #####
 
