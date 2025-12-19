@@ -1,4 +1,5 @@
 # TX Ultimate HA Failover - Base Configuration
+# Version: 1.3.1
 # This file contains all the core functionality
 # Include this via packages in your device config
 
@@ -7,11 +8,7 @@ esphome:
   friendly_name: ${friendly_name}
   project:
     name: smarthomeyourself.tx_ultimate
-    version: "1.1"
-
-  platformio_options:
-    lib_deps:
-      - ESP32Ping
+    version: "1.3.1"
 
   on_boot:
     priority: -100
@@ -39,6 +36,11 @@ esphome:
           state: OFF
       - script.execute: refresh_led_default
       - script.execute: refresh_nightlight
+      # Inicializar heartbeat HA
+      - lambda: |-
+          id(ha_last_seen) = millis();
+      - delay: 5s
+      - script.execute: check_ha_heartbeat
 
 esp32:
   board: esp32dev
@@ -46,44 +48,18 @@ esp32:
     type: arduino
 
 logger:
-  level: DEBUG
+  level: INFO
   logs:
-    binary_sensor: INFO
-    light: INFO
-    script: INFO
-    switch: INFO
-    tx_ultimate_touch: INFO
-    uart_debug: INFO
-
-api:
-  encryption:
-    key: !secret api_key
-
-ota:
-  - platform: esphome
-    password: !secret ota_pass
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  use_address: ${device_ip}
-  ap:
-    ssid: ${ap_ssid}
-    password: !secret ap_pass
+    binary_sensor: WARN
+    light: WARN
+    script: WARN
+    switch: WARN
+    tx_ultimate_touch: WARN
+    component: ERROR
 
 improv_serial:
 
 captive_portal:
-
-# Bluetooth Proxy
-esp32_ble_tracker:
-  scan_parameters:
-    interval: 1100ms
-    window: 1100ms
-    active: true
-
-bluetooth_proxy:
-  active: true
 
 external_components:
   - source:
@@ -91,26 +67,11 @@ external_components:
       url: https://github.com/SmartHome-yourself/sonoff-tx-ultimate-for-esphome
       ref: main
     components: [tx_ultimate_touch]
-  - source:
-      type: git
-      url: https://github.com/trombik/esphome-component-ping
-      ref: main
-    components: [ ping ]
 
-sensor:
-  - platform: ping
-    ip_address: ${ha_ip}
-    update_interval: ${ha_check_interval}
-    num_attempts: 5
-    timeout: 1s
-    loss:
-      name: "${friendly_name} HA Packet Loss"
-      id: ha_packet_loss
-      internal: true
-    latency:
-      name: "${friendly_name} HA Latency"
-      id: ha_latency
-      internal: true
+# HTTP request para verificar HA
+http_request:
+  timeout: 5s
+  verify_ssl: false
 
 globals:
   - id: nightlight_color
@@ -142,30 +103,63 @@ globals:
     restore_value: no
     initial_value: ${touch_color}
 
+  # Variables para heartbeat HA y estado de relays
+  - id: ha_last_seen
+    type: unsigned long
+    restore_value: no
+    initial_value: '0'
+  - id: ha_offline_mode
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: ha_failed_checks
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: ha_max_failures_before_failover
+    type: int
+    restore_value: no
+    initial_value: '10'  # 10 failures × 60s = 10 minutos
+  - id: relay_1_saved_state
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: relay_2_saved_state
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  - id: relay_3_saved_state
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+  # Control dinámico de toggle manual
   - id: toggle_relay_1_on_touch
     type: bool
     restore_value: no
-    initial_value: "false"
+    initial_value: 'false'  # Normalmente controlado por HA
   - id: toggle_relay_2_on_touch
     type: bool
     restore_value: no
-    initial_value: "false"
+    initial_value: 'false'
   - id: toggle_relay_3_on_touch
     type: bool
     restore_value: no
-    initial_value: "false"
+    initial_value: 'false'
 
-  - id: connectivity_status
-    type: int
-    restore_value: no
-    initial_value: "0"
-
-  - id: system_ready
+  # Configuración failover
+  - id: ha_failover_turn_on_lights
     type: bool
     restore_value: no
-    initial_value: "false"
+    initial_value: ${ha_failover_turn_on_lights}
 
 binary_sensor:
+  # Estado de conexión HA
+  - platform: template
+    name: "${friendly_name} HA Online"
+    id: ha_online
+    device_class: connectivity
+
   - platform: template
     name: "Touchfield 1"
     id: touchfield_1
@@ -314,7 +308,7 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
 
   - platform: template
-    name: "Nightlight"
+    name: "Nightlight Auto"
     id: nightlight
     internal: true
     optimistic: true
@@ -327,7 +321,7 @@ switch:
         - script.execute: refresh_led_default
 
   - platform: template
-    name: "Nightlight Active"
+    name: "${friendly_name} Nightlight"
     id: nightlight_active
     optimistic: true
     restore_mode: RESTORE_DEFAULT_OFF
@@ -451,59 +445,71 @@ uart:
   data_bits: 8
   stop_bits: 1
   parity: NONE
-  debug:
-    direction: RX
-    dummy_receiver: false
-    after:
-      timeout: 2s
-      bytes: 2048
-    sequence:
-      - lambda: UARTDebug::log_hex(direction, bytes, ' ');
 
 tx_ultimate_touch:
   id: tx_touch
   uart: my_uart
+
   on_press:
     - script.execute: led_on_touch
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_press", "Touch Position: %d / State: %d", touch.x, touch.state);
+
   on_release:
     - script.execute:
         id: handle_release
         pos: !lambda "return touch.x;"
+
     - switch.turn_on: vibra
+
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_release", "Release Position: %d / State: %d", touch.x, touch.state);
+
   on_swipe_left:
     - script.execute: led_on_swipe_left
+
     - switch.turn_on: vibra
+
     - binary_sensor.template.publish:
         id: swipe_left
         state: ON
+
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_swipe_left", "Swipe Left Position: %d / State: %d", touch.x, touch.state);
+
   on_swipe_right:
     - script.execute: led_on_swipe_right
+
     - switch.turn_on: vibra
+
     - binary_sensor.template.publish:
         id: swipe_right
         state: ON
+
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_swipe_right", "Swipe Right Position: %d / State: %d", touch.x, touch.state);
+
   on_full_touch_release:
     - script.execute: led_on_full_touch
+
     - switch.turn_on: vibra
+
     - binary_sensor.template.publish:
         id: multi_touch
         state: ON
+
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_full_touch_release", "Full Touch Release Position: %d / State: %d", touch.x, touch.state);
+
   on_long_touch_release:
     - script.execute: led_on_long_touch
+
     - switch.turn_on: vibra
+
     - binary_sensor.template.publish:
         id: long_press
         state: ON
+
     - lambda: >
         ESP_LOGD("tx_ultimate_touch.on_long_touch_release", "Long Touch Release Position: %d / State: %d", touch.x, touch.state);
 
@@ -511,8 +517,9 @@ time:
   - platform: homeassistant
   - platform: sntp
     on_time:
+      # Every 5 minutes
       - seconds: 0
-        minutes: /${nightlight_check_interval}
+        minutes: /5
         then:
           - script.execute: refresh_nightlight
 
@@ -542,6 +549,7 @@ script:
     mode: restart
     then:
       - light.turn_off: leds_top
+
       - if:
           condition:
             lambda: "return (${relay_count}>1 && id(relay_1).state) ;"
@@ -549,6 +557,7 @@ script:
             - script.execute: led_on_button_left
           else:
             - script.execute: led_off_button_left
+
       - if:
           condition:
             lambda: "return (${relay_count}==3 && id(relay_2).state) || (${relay_count}==1 && id(relay_1).state);"
@@ -556,6 +565,7 @@ script:
             - script.execute: led_on_button_middle
           else:
             - script.execute: led_off_button_middle
+
       - if:
           condition:
             lambda: "return (${relay_count}==2 && id(relay_2).state) || (${relay_count}==3 && id(relay_3).state);"
@@ -563,6 +573,7 @@ script:
             - script.execute: led_on_button_right
           else:
             - script.execute: led_off_button_right
+
       - if:
           condition:
             lambda: "return id(nightlight).state || id(nightlight_active).state;"
@@ -671,45 +682,15 @@ script:
   - id: led_on_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: "return id(connectivity_status) == 1;"
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: 0.3
-                red: ${no_wifi_color_r}
-                green: ${no_wifi_color_g}
-                blue: ${no_wifi_color_b}
-                effect: "Pulse"
-            - delay: 3s
-            - light.turn_off: leds_top
-            - script.execute: refresh_led_default
-          else:
-            - if:
-                condition:
-                  lambda: "return id(connectivity_status) == 2;"
-                then:
-                  - light.turn_on:
-                      id: leds_top
-                      brightness: 0.3
-                      red: ${ha_down_color_r}
-                      green: ${ha_down_color_g}
-                      blue: ${ha_down_color_b}
-                      effect: "Pulse"
-                  - delay: 3s
-                  - light.turn_off: leds_top
-                  - script.execute: refresh_led_default
-                else:
-                  - light.turn_on:
-                      id: leds_top
-                      brightness: ${touch_brightness}
-                      red: !lambda "return id(touch_color)[0]/100.0;"
-                      green: !lambda "return id(touch_color)[1]/100.0;"
-                      blue:  !lambda "return id(touch_color)[2]/100.0;"
-                      effect: ${touch_effect}
-                  - delay: 6s
-                  - script.execute: refresh_led_default
+      - light.turn_on:
+          id: leds_top
+          brightness: ${touch_brightness}
+          red: !lambda "return id(touch_color)[0]/100.0;"
+          green: !lambda "return id(touch_color)[1]/100.0;"
+          blue:  !lambda "return id(touch_color)[2]/100.0;"
+          effect: ${touch_effect}
+      - delay: 6s
+      - script.execute: refresh_led_default
 
   - id: led_on_swipe_left
     mode: restart
@@ -755,20 +736,6 @@ script:
           blue:  !lambda "return id(long_press_color)[2]/100.0;"
           effect: ${long_press_effect}
 
-  - id: ha_back_online_indicator
-    mode: restart
-    then:
-      - light.turn_on:
-          id: leds_top
-          brightness: 0.4
-          red: ${ha_online_color_r}
-          green: ${ha_online_color_g}
-          blue: ${ha_online_color_b}
-          effect: "Pulse"
-      - delay: 3s
-      - light.turn_off: leds_top
-      - script.execute: refresh_led_default
-
   - id: handle_release
     mode: restart
     parameters:
@@ -781,6 +748,7 @@ script:
             - binary_sensor.template.publish:
                 id: touchfield_1
                 state: ON
+
       - if:
           condition:
             lambda: "return ${relay_count}==2;"
@@ -792,10 +760,12 @@ script:
                   - binary_sensor.template.publish:
                       id: touchfield_1
                       state: ON
+
                 else:
                   - binary_sensor.template.publish:
                       id: touchfield_2
                       state: ON
+
       - if:
           condition:
             lambda: "return ${relay_count}==3;"
@@ -807,6 +777,7 @@ script:
                   - binary_sensor.template.publish:
                       id: touchfield_1
                       state: ON
+
                 else:
                   - if:
                       condition:
@@ -815,10 +786,107 @@ script:
                         - binary_sensor.template.publish:
                             id: touchfield_2
                             state: ON
+
                       else:
                         - binary_sensor.template.publish:
                             id: touchfield_3
                             state: ON
+
+  # Script para verificar heartbeat con HA usando HTTP API
+  - id: check_ha_heartbeat
+    mode: single
+    then:
+      - http_request.get:
+          url: "${ha_url}/api/"
+          headers:
+            Authorization: !lambda 'return "${ha_api_token}";'
+          on_response:
+            then:
+              - lambda: |-
+                  ESP_LOGI("heartbeat", "HA API respondió correctamente");
+
+                  // Actualizar timestamp y resetear contador de fallos
+                  id(ha_last_seen) = millis();
+                  id(ha_failed_checks) = 0;
+
+                  // Si estábamos en modo offline, restaurar estados
+                  if (id(ha_offline_mode)) {
+                    ESP_LOGI("heartbeat", "HA volvió online! Restaurando comportamiento automático");
+                    id(ha_offline_mode) = false;
+
+                    // DESACTIVAR MODO MANUAL (volver a control por HA)
+                    ESP_LOGI("heartbeat", "Desactivando modo manual, volviendo a control HA");
+                    id(toggle_relay_1_on_touch) = false;
+                    id(toggle_relay_2_on_touch) = false;
+                    id(toggle_relay_3_on_touch) = false;
+
+                    // Restaurar estados guardados de relays
+                    if (id(relay_1).state != id(relay_1_saved_state)) {
+                      ESP_LOGI("heartbeat", "Restaurando Relay 1 a: %s", id(relay_1_saved_state) ? "ON" : "OFF");
+                      id(relay_1_saved_state) ? id(relay_1).turn_on() : id(relay_1).turn_off();
+                    }
+                    if (id(relay_2).state != id(relay_2_saved_state)) {
+                      ESP_LOGI("heartbeat", "Restaurando Relay 2 a: %s", id(relay_2_saved_state) ? "ON" : "OFF");
+                      id(relay_2_saved_state) ? id(relay_2).turn_on() : id(relay_2).turn_off();
+                    }
+                    if (id(relay_3).state != id(relay_3_saved_state)) {
+                      ESP_LOGI("heartbeat", "Restaurando Relay 3 a: %s", id(relay_3_saved_state) ? "ON" : "OFF");
+                      id(relay_3_saved_state) ? id(relay_3).turn_on() : id(relay_3).turn_off();
+                    }
+
+                    id(ha_online).publish_state(true);
+                  }
+
+              # Restaurar nightlight a color normal
+              - script.execute: refresh_led_default
+          on_error:
+            - lambda: |-
+                id(ha_failed_checks)++;
+                ESP_LOGW("heartbeat", "Error al conectar con HA API (fallo #%d/10)", id(ha_failed_checks));
+
+                // Verificar si necesitamos entrar en modo failover
+                if (id(ha_failed_checks) >= 10 && !id(ha_offline_mode)) {
+                  ESP_LOGE("heartbeat", "HA offline por >10 minutos, activando MODO MANUAL");
+                  id(ha_offline_mode) = true;
+
+                  // Guardar estados actuales
+                  id(relay_1_saved_state) = id(relay_1).state;
+                  id(relay_2_saved_state) = id(relay_2).state;
+                  id(relay_3_saved_state) = id(relay_3).state;
+
+                  ESP_LOGI("heartbeat", "Estados guardados - R1:%s R2:%s R3:%s",
+                          id(relay_1_saved_state) ? "ON" : "OFF",
+                          id(relay_2_saved_state) ? "ON" : "OFF",
+                          id(relay_3_saved_state) ? "ON" : "OFF");
+
+                  // ACTIVAR MODO MANUAL (los switches funcionan como interruptores)
+                  ESP_LOGW("heartbeat", "Activando modo MANUAL en los switches");
+                  id(toggle_relay_1_on_touch) = true;
+                  id(toggle_relay_2_on_touch) = true;
+                  id(toggle_relay_3_on_touch) = true;
+
+                  // Opcional: encender luces solo en living/comedor
+                  if (id(ha_failover_turn_on_lights)) {
+                    ESP_LOGW("heartbeat", "Encendiendo todas las luces por seguridad");
+                    id(relay_1).turn_on();
+                    id(relay_2).turn_on();
+                    id(relay_3).turn_on();
+                  }
+
+                  id(ha_online).publish_state(false);
+                }
+
+            # Cambiar nightlight a color de alerta si HA está offline
+            - if:
+                condition:
+                  lambda: "return id(ha_offline_mode);"
+                then:
+                  - light.turn_on:
+                      id: leds_nightlight
+                      brightness: ${nightlight_brightness}
+                      red: 1.0
+                      green: 0.0
+                      blue: 0.0
 
   - id: touch_led_marker
     mode: restart
@@ -830,12 +898,15 @@ script:
           condition:
             lambda: "return state==1;"
           then:
+            # RELEASE
             - light.turn_off: leds
+
           else:
             - if:
                 condition:
                   lambda: "return state==2;"
                 then:
+                  # TOUCH
                   - light.turn_on:
                       id: leds
                       red: 1
@@ -843,30 +914,37 @@ script:
                       blue: 0
                   - delay: 6s
                   - light.turn_off: leds
+
                 else:
                   - if:
                       condition:
                         lambda: "return state==11;"
                       then:
+                        # FULL-TOUCH RELEASE
                         - light.turn_on:
                             id: leds
                             effect: "Rainbow"
                         - delay: 1s
                         - light.turn_off: leds
+
                       else:
+                        # SWIPE
                         - if:
                             condition:
                               lambda: "return state==13;"
                             then:
+                              # SWIPE LEFT
                               - light.turn_on:
                                   id: leds
                                   red: 0
                                   green: 1
                                   blue: 0
+
                         - if:
                             condition:
                               lambda: "return state==12;"
                             then:
+                              # SWIPE RIGHT
                               - light.turn_on:
                                   id: leds
                                   red: 0
@@ -876,75 +954,20 @@ script:
                         - light.turn_off: leds
 
 interval:
-  - interval: 2min
+  # Verificar conexión WiFi cada 10 minutos
+  - interval: 10min
     then:
-      - lambda: |-
-          static bool first_execution = true;
-          if (first_execution) {
-            first_execution = false;
-            id(system_ready) = true;
-            ESP_LOGI("system", "System ready. Watchdogs now active.");
-          }
+      - if:
+          condition:
+            lambda: "return millis() > 180000 && !network::is_connected();"
+          then:
+            - logger.log:
+                level: WARN
+                tag: "wifi"
+                format: "WiFi desconectado por >3 minutos, reiniciando..."
+            - lambda: "ESP.restart();"
 
-  - interval: ${wifi_check_interval}
+  # Heartbeat con Home Assistant cada 60 segundos
+  - interval: 60s
     then:
-      - lambda: |-
-          if (!id(system_ready)) {
-            return;
-          }
-          if (!WiFi.isConnected()) {
-            ESP_LOGW("living_tx.wifi", "WiFi lost after successful boot. Restarting...");
-            ESP.restart();
-          }
-
-  - interval: 310s
-    then:
-      - lambda: |-
-          static bool ha_down = false;
-          static int ha_down_count = 0;
-
-          if (!id(system_ready)) {
-            return;
-          }
-
-          if (!WiFi.isConnected()) {
-            if (!ha_down) {
-              ha_down = true;
-              ha_down_count = 0;
-              ESP_LOGW("ha_watchdog", "No WiFi connection. Enabling local touch control.");
-              id(toggle_relay_1_on_touch) = true;
-              id(toggle_relay_2_on_touch) = true;
-              id(toggle_relay_3_on_touch) = true;
-              id(connectivity_status) = 1;
-            }
-            return;
-          }
-
-          if (isnan(id(ha_packet_loss).state) || id(ha_packet_loss).state > 80.0) {
-            ha_down_count++;
-            ESP_LOGW("ha_watchdog", "Home Assistant not reachable (attempt %d, loss: %.1f%%).",
-                     ha_down_count, id(ha_packet_loss).state);
-
-            if (ha_down_count >= 2 && !ha_down) {
-              ha_down = true;
-              ESP_LOGW("ha_watchdog", "Home Assistant down for 10+ minutes. Enabling local touch control.");
-              id(toggle_relay_1_on_touch) = true;
-              id(toggle_relay_2_on_touch) = true;
-              id(toggle_relay_3_on_touch) = true;
-              id(connectivity_status) = 2;
-            }
-          } else {
-            if (ha_down || ha_down_count > 0) {
-              ha_down = false;
-              ha_down_count = 0;
-              ESP_LOGI("ha_watchdog", "Home Assistant back online (loss: %.1f%%, latency: %.1fms). Restoring normal touch behavior.",
-                       id(ha_packet_loss).state, id(ha_latency).state);
-              id(toggle_relay_1_on_touch) = false;
-              id(toggle_relay_2_on_touch) = false;
-              id(toggle_relay_3_on_touch) = false;
-              id(connectivity_status) = 0;
-              id(ha_back_online_indicator).execute();
-            } else {
-              ha_down_count = 0;
-            }
-          }
+      - script.execute: check_ha_heartbeat
