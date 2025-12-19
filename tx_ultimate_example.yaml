@@ -66,6 +66,7 @@ substitutions:
   # FAILOVER CONFIGURATION
   # ================================
   ha_failover_turn_on_lights: "true"  # true for living/dining, false for bedrooms
+  ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline
 
   # ================================
   # LOCATION FOR NIGHTLIGHT
