@@ -1,0 +1,109 @@
+substitutions:
+  ###### CHANGE ME START ######
+  name: 'living_tx'
+  friendly_name: "Living-TX"
+
+  # Home Assistant
+  ha_url: "https://192.168.50.168:8123"
+  ha_api_token: !secret tx_status_api_token
+
+  # Hardware
+  relay_count: "2"
+
+  # Timings
+  vibra_time: 400ms
+  button_on_time: 500ms
+
+  # LED Colors - RGB format (0-100)
+  button_brightness: "0"
+  button_color: "{0,0,90}"  # Luz de encendido (azul)
+
+  nightlight: "on"
+  nightlight_brightness: "0.2"
+  nightlight_color: "{80,70,0}"  # Color normal del nightlight (cálido)
+
+  # Failover Configuration
+  ha_failover_turn_on_lights: "true"  # true para living, false para habitaciones
+  ha_failover_nightlight_color: "{100,0,0}"  # Rojo oscuro para alerta cuando HA offline
+
+  # Touch feedback colors
+  touch_brightness: "1"
+  touch_color: "{0,100,100}"
+  touch_effect: "Scan"
+
+  long_press_brightness: "1"
+  long_press_color: "{100,0,0}"
+  long_press_effect: ""
+
+  multi_touch_brightness: "1"
+  multi_touch_color: "{0,0,0}"
+  multi_touch_effect: "Rainbow"
+
+  swipe_left_brightness: "1"
+  swipe_left_color: "{0,100,0}"
+  swipe_left_effect: ""
+
+  swipe_right_brightness: "1"
+  swipe_right_color: "{100,0,70}"
+  swipe_right_effect: ""
+
+  # Location for nightlight automation
+  latitude: !secret latitude
+  longitude: !secret longitude
+
+  # Pin assignments (TX Ultimate standard)
+  relay_1_pin: GPIO18
+  relay_2_pin: GPIO17
+  relay_3_pin: GPIO27
+  relay_4_pin: GPIO23
+
+  vibra_motor_pin: GPIO21
+  pa_power_pin: GPIO26
+
+  led_pin: GPIO13
+  status_led_pin: GPIO33
+
+  uart_tx_pin: GPIO19
+  uart_rx_pin: GPIO22
+
+  audio_lrclk_pin: GPIO4
+  audio_bclk_pin: GPIO2
+  audio_sdata_pin: GPIO15
+
+  touchpanel_power_pin: GPIO5
+
+  ###### CHANGE ME END ######
+
+##### DO NOT CHANGE ANYTHING BELOW! #####
+
+packages:
+  remote_package:
+    url: https://github.com/cfpandrade/tx-ultimate-ha-failover
+    ref: main  # Use 'main' for latest, or 'v1.3.1' for specific version
+    files: [tx_ultimate_base.yaml]
+    refresh: 300s
+
+##### My customization - Start #####
+
+# API with encryption
+api:
+  encryption:
+    key: !secret api_key
+
+# OTA updates
+ota:
+  - platform: esphome
+    password: !secret ota_pass_living_tx
+
+# WiFi configuration
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 192.168.35.56
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Tx-Living"
+    password: !secret ap_pass
+
+##### My customization - End #####
