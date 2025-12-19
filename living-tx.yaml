@@ -79,9 +79,9 @@ substitutions:
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: claude/improve-tx-failover-WpAtS  # Temporary: usando branch con fix
+    ref: main
     files: [tx_ultimate_base.yaml]
-    refresh: 0s  # Force immediate update
+    refresh: 300s
 
 ##### My customization - Start #####
 
