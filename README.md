@@ -1,325 +1,312 @@
 # TX Ultimate HA Failover
 
-ESPHome configuration for TX Ultimate touch panel with Home Assistant failover support.
+ESPHome configuration for TX Ultimate touch panel with **automatic Home Assistant failover support**.
 
-## Features
+When Home Assistant goes offline, your TX Ultimate automatically switches to **manual mode** - buttons work as physical switches until HA comes back online.
 
-- **WiFi Watchdog**: Automatic restart if WiFi connection is lost
-- **Home Assistant Failover**: Enables local relay control when HA is unreachable
-  - **Smart Ping Detection**: Uses ICMP ping instead of TCP connections for more reliable HA monitoring
-  - Tracks packet loss and latency for better diagnostics
-- **Visual Status Indicators**: LED feedback for connectivity status
-  - Yellow pulsing: No WiFi
-  - Red pulsing: Home Assistant offline
-  - Cyan pulsing: Home Assistant back online
-- **Bluetooth Proxy**: Built-in Bluetooth Low Energy proxy for Home Assistant
-- **Customizable Colors**: All LED colors configurable via substitutions
+## 🚀 Features
+
+- **Home Assistant Failover**: Automatic manual control when HA is unreachable
+  - HTTP heartbeat monitoring every 60 seconds
+  - Activates manual mode after 10 minutes offline
+  - Auto-restores HA control when back online
+  - Saves relay states and restores them on recovery
+- **WiFi Watchdog**: Auto-restart if WiFi connection is lost
+- **Visual Indicators**: Red nightlight when HA is offline
+- **Optional Auto-On**: Configure lights to turn on in failover (living room) or stay off (bedrooms)
 - **Touch Panel Control**: Full support for touch, swipe, long press, and multi-touch gestures
 - **Nightlight Mode**: Automatic nightlight based on sunset/sunrise
 
-## Documentation
+## 📦 Installation (Remote Package - Recommended)
 
-- **[Quick Start Guide](QUICK_START.md)** - Get up and running in 5 minutes
-- **[Configuration Examples](CONFIGURATION_EXAMPLES.md)** - Ready-to-use configuration templates
-- **[Architecture](ARCHITECTURE.md)** - Technical details and system design
+**No git clone needed!** Just create one YAML file and ESPHome loads everything from GitHub.
 
-## Installation
+### Step 1: Create your device YAML
 
-**🚀 Remote Installation - No git clone needed!**
-
-Just create one YAML file with your settings and ESPHome will load everything else from GitHub automatically.
-
-### Quick Start (5 Steps)
-
-#### Step 1: Open ESPHome Dashboard
-
-1. In Home Assistant, go to **Settings** → **Add-ons**
-2. Open **ESPHome**
-3. Click **"OPEN WEB UI"**
-
-#### Step 2: Create a new device
-
-1. Click **"+ NEW DEVICE"** (bottom right)
-2. Click **"SKIP"** (we'll use our own configuration)
-3. Enter a name: `living-room-tx`
-4. Click **"SKIP"** again (we'll paste the full config)
-
-#### Step 3: Paste this configuration
+In your ESPHome folder, create a new file (e.g., `living-tx.yaml`):
 
 ```yaml
 substitutions:
   ###### CHANGE ME START ######
-
-  # Device Settings
   name: "living-tx"
   friendly_name: "Living Room TX"
 
-  # Network Settings
-  ha_ip: "192.168.1.100"              # Your Home Assistant IP
-  device_ip: "192.168.1.101"          # Fixed IP for this device
+  # Home Assistant
+  ha_url: "https://192.168.1.100:8123"
+  ha_api_token: !secret tx_status_api_token  # See Step 2
 
   # Hardware
-  relay_count: "2"                    # Number of relays: 1, 2, or 3
+  relay_count: "2"  # Number of relays: 1, 2, or 3
 
-  # Location (for automatic nightlight)
-  latitude: "40.7128°"                # Your latitude
-  longitude: "-74.0060°"              # Your longitude
+  # Failover behavior
+  ha_failover_turn_on_lights: "true"  # true for living room, false for bedrooms
 
+  # Location (for nightlight)
+  latitude: !secret latitude
+  longitude: !secret longitude
+
+  # LED Colors (RGB 0-100)
+  button_brightness: "0"
+  button_color: "{0,0,90}"
+  nightlight: "on"
+  nightlight_brightness: "0.2"
+  nightlight_color: "{80,70,0}"
+  touch_brightness: "1"
+  touch_color: "{0,100,100}"
+  touch_effect: "Scan"
+  long_press_brightness: "1"
+  long_press_color: "{100,0,0}"
+  long_press_effect: ""
+  multi_touch_brightness: "1"
+  multi_touch_color: "{0,0,0}"
+  multi_touch_effect: "Rainbow"
+  swipe_left_brightness: "1"
+  swipe_left_color: "{0,100,0}"
+  swipe_left_effect: ""
+  swipe_right_brightness: "1"
+  swipe_right_color: "{100,0,70}"
+  swipe_right_effect: ""
+
+  # Timings
+  vibra_time: 400ms
+  button_on_time: 500ms
+
+  # Pins (TX Ultimate standard - don't change)
+  relay_1_pin: GPIO18
+  relay_2_pin: GPIO17
+  relay_3_pin: GPIO27
+  relay_4_pin: GPIO23
+  vibra_motor_pin: GPIO21
+  pa_power_pin: GPIO26
+  led_pin: GPIO13
+  status_led_pin: GPIO33
+  uart_tx_pin: GPIO19
+  uart_rx_pin: GPIO22
+  audio_lrclk_pin: GPIO4
+  audio_bclk_pin: GPIO2
+  audio_sdata_pin: GPIO15
+  touchpanel_power_pin: GPIO5
   ###### CHANGE ME END ######
 
-###### DO NOT CHANGE ANYTHING BELOW! ######
+##### DO NOT CHANGE BELOW! #####
 
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: main  # Use 'main' for latest or 'v1.2.1' for specific version
+    ref: main  # or use 'v1.3.1' for specific version
     files: [tx_ultimate_base.yaml]
     refresh: 300s
 
-##### My customizations - Start #####
+##### My customization - Start #####
 
-# API with encryption
 api:
   encryption:
     key: !secret api_key
 
-# OTA updates
 ota:
   - platform: esphome
     password: !secret ota_pass
 
-# WiFi with fixed IP (optional but recommended)
 wifi:
-  use_address: ${device_ip}
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  use_address: 192.168.35.56  # Optional: your device IP
+  ap:
+    ssid: "Tx-Living"
+    password: !secret ap_pass
 
-##### My customizations - End #####
+##### My customization - End #####
 ```
 
-Click **"SAVE"** and then **"CLOSE"**
+### Step 2: Get Home Assistant Long-Lived Token
 
-#### Step 4: Configure secrets
+1. In Home Assistant, click your **profile** (bottom left)
+2. Scroll to **"Long-Lived Access Tokens"**
+3. Click **"CREATE TOKEN"**
+4. Name it "TX Living Room"
+5. **Copy the token** (starts with "eyJ...")
+6. Add to `secrets.yaml`:
+   ```yaml
+   tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   ```
+   **Important**: Must start with "Bearer "
 
-1. In the ESPHome dashboard, click **"SECRETS"** (top right, key icon)
-2. Add your credentials:
+### Step 3: Configure secrets.yaml
+
+Create or update `secrets.yaml` in your ESPHome folder:
 
 ```yaml
-# Add these lines to your secrets
+# WiFi
 wifi_ssid: "YourWiFiName"
 wifi_password: "YourWiFiPassword"
-ap_pass: "FallbackPassword123"
-api_key: "GENERATE_A_32_CHAR_KEY"    # Click the shuffle icon to generate
+ap_pass: "FallbackAP123"
+
+# ESPHome
+api_key: "generate-this-in-esphome-dashboard"  # Click the key icon
 ota_pass: "your-ota-password"
+
+# Location
+latitude: "40.7128°"
+longitude: "-74.0060°"
+
+# HA Token (from Step 2)
+tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
-3. Click **"SAVE"**
-
-#### Step 5: Install to device
-
-1. Click the **three dots (⋮)** on your device card
-2. Click **"Install"**
-3. Choose your installation method:
-   - **"Wireless"** (if device already has ESPHome)
-   - **"Plug into this computer"** (for first flash via USB)
-4. Follow the on-screen instructions
-
-**Done!** ✅ The complete configuration loads automatically from GitHub.
-
----
-
-### 📺 Video Guide
-
-For a visual walkthrough, watch this [ESPHome Installation Guide](https://www.youtube.com/watch?v=iufph4dF3YU) (official Home Assistant tutorial).
-
----
-
-### What You Get
-
-- ✅ **No git clone needed** - Configuration loads remotely from GitHub
-- ✅ **Always up-to-date** - Auto-checks for updates every 5 minutes
-- ✅ **Minimal file** - Only ~60 lines to customize (vs 1000+ lines)
-- ✅ **Easy updates** - Change `ref: main` to `ref: v1.2.1` for specific versions
-- ✅ **Multiple devices** - Create one file per device with different settings
-
----
-
-### Advanced: Full Customization
-
-Want to customize colors, timings, or other settings? See the complete example:
-
-**[tx_ultimate_example.yaml](tx_ultimate_example.yaml)** - Full configuration template with all options
-
-Common customizations:
-
-```yaml
-substitutions:
-  # LED Colors (RGB 0-100)
-  button_color: "{0,0,90}"           # Blue when relay is on
-  nightlight_color: "{80,70,0}"      # Warm white
-  touch_color: "{0,100,100}"         # Cyan when touched
-
-  # Monitoring Intervals
-  wifi_check_interval: "600s"        # Check WiFi every 10 min
-  ha_check_interval: "300s"          # Check HA every 5 min
-```
-
----
-
-### Alternative: Local Installation with Git Clone
-
-If you prefer to have a local copy or want to modify the base configuration:
-
-#### 1. Clone this repository
+### Step 4: Flash to device
 
 ```bash
-cd /config/esphome
-git clone https://github.com/YOUR_USERNAME/tx-ultimate-ha-failover.git
+esphome run living-tx.yaml
 ```
 
-#### 2. Copy and configure secrets file
+Or use the ESPHome dashboard **"Install"** button.
 
-```bash
-cd tx-ultimate-ha-failover
-cp secrets.yaml.example secrets.yaml
+**Done!** ✅
+
+---
+
+## 📖 How It Works
+
+### Normal Operation
+- Buttons trigger Home Assistant automations
+- HA controls the lights through automations
+- Visual feedback on all gestures
+
+### Failover Mode (HA Offline)
+1. **Detection**: HTTP heartbeat fails for 10 minutes (10 consecutive checks)
+2. **Activation**:
+   - Saves current relay states
+   - Enables manual button control
+   - Optional: Turns on all lights (if `ha_failover_turn_on_lights: "true"`)
+   - Nightlight turns **red** to indicate offline mode
+3. **Recovery**:
+   - When HA comes back online, restores saved states
+   - Returns buttons to automation mode
+   - Nightlight returns to normal color
+
+### WiFi Watchdog
+- Checks WiFi every 10 minutes
+- Auto-restarts device if WiFi lost for >3 minutes
+
+---
+
+## 🎨 Customization
+
+### Failover Behavior
+
+**Living Room / Dining Room** (turn on lights):
+```yaml
+ha_failover_turn_on_lights: "true"
 ```
 
-Edit `secrets.yaml` with your credentials:
+**Bedroom / Bathroom** (keep current state):
+```yaml
+ha_failover_turn_on_lights: "false"
+```
+
+### LED Colors
+
+RGB format (0-100):
+- Blue: `{0,0,90}`
+- Red: `{100,0,0}`
+- Green: `{0,100,0}`
+- Cyan: `{0,100,100}`
+- Warm White: `{80,70,0}`
+
+### Relay Count
 
 ```yaml
-wifi_ssid: "YourWiFiSSID"
-wifi_password: "YourWiFiPassword"
-ap_pass: "FallbackAPPassword"
-api_key: "YourAPIEncryptionKey"
+relay_count: "1"  # Single button (middle)
+relay_count: "2"  # Two buttons (left + right)
+relay_count: "3"  # Three buttons (left + middle + right)
 ```
 
-#### 3. Customize your device
+---
 
-Edit [tx_ultimate_failover.yaml](tx_ultimate_failover.yaml) and modify the substitutions section:
-
-```yaml
-substitutions:
-  # Device identification
-  name: 'living_tx'
-  friendly_name: "Living-TX"
-
-  # Network settings
-  ha_ip: "192.168.1.100"          # Your Home Assistant IP
-  ha_port: "8123"                   # HA port
-  device_ip: "192.168.1.101"        # Fixed IP for this device
-
-  # Monitoring intervals
-  wifi_check_interval: "600s"       # WiFi watchdog check
-  ha_check_interval: "300s"         # HA availability check
-
-  # LED Colors (RGB format 0-100)
-  button_color: "{0,0,90}"          # Button active color (blue)
-  nightlight_color: "{80,70,0}"     # Nightlight color (warm)
-  touch_color: "{0,100,100}"        # Touch feedback color (cyan)
-  # ... more colors ...
-```
-
-#### 4. Flash to your device
-
-```bash
-esphome run tx_ultimate_failover.yaml
-```
-
-For more configuration examples, see [CONFIGURATION_EXAMPLES.md](CONFIGURATION_EXAMPLES.md)
-
-## Configuration Options
-
-### Substitutions Reference
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ha_ip` | `192.168.1.100` | Home Assistant IP address |
-| `ha_port` | `8123` | Home Assistant port |
-| `device_ip` | `192.168.1.101` | Fixed IP for this device |
-| `wifi_check_interval` | `600s` | How often to check WiFi (10 min) |
-| `ha_check_interval` | `300s` | How often to check HA (5 min) |
-| `relay_count` | `2` | Number of relays (1-3) |
-
-### Color Customization
-
-All colors use RGB format with values 0-100:
-- `{0,0,90}` = Blue
-- `{80,70,0}` = Warm white
-- `{0,100,100}` = Cyan
-- `{100,0,0}` = Red
-- `{0,100,0}` = Green
-
-### Location Settings
-
-For proper nightlight automation, set your location:
-
-```yaml
-substitutions:
-  latitude: "40.7128°"
-  longitude: "-74.0060°"
-```
-
-## How It Works
-
-### Failover Logic
-
-1. **WiFi Check** (every 10 minutes):
-   - If WiFi lost: Device restarts automatically
-   - Status indicator: Yellow pulsing LED
-
-2. **Home Assistant Check** (every 5 minutes using ICMP ping):
-   - Sends 5 ping packets to Home Assistant
-   - Monitors packet loss percentage (>80% = HA down)
-   - Tracks latency for diagnostics
-   - After 2 failed attempts (10 minutes): Enables local control
-   - Status indicator: Red pulsing LED
-   - When HA returns: Cyan pulsing confirmation
-
-3. **Local Control Mode**:
-   - Touching buttons directly toggles relays
-   - No Home Assistant automation required
-   - Automatic return to normal mode when HA is back
-
-4. **Bluetooth Proxy**:
-   - Extends Home Assistant's Bluetooth range
-   - Allows HA to communicate with BLE devices through this device
-   - No additional configuration needed
-
-## Project Structure
+## 📁 Repository Structure
 
 ```
 tx-ultimate-ha-failover/
-├── README.md                        # This file
-├── CONFIGURATION_EXAMPLES.md        # Configuration examples and templates
-├── install.sh                       # Automated installation script
-├── tx_ultimate_failover.yaml        # Main ESPHome config
-├── esphome_tx_sonoff.yaml          # Original config (reference)
-├── secrets.yaml.example             # Template for credentials
-└── .gitignore                       # Prevents secrets from being committed
+├── README.md                    # This file
+├── tx_ultimate_base.yaml        # Core configuration (loaded from GitHub)
+├── tx_ultimate_example.yaml     # Full example with all options
+├── secrets.yaml.example         # Template for credentials
+└── .gitignore                   # Prevents secrets from being committed
 ```
 
-## Troubleshooting
+---
 
-### Device not connecting to WiFi
-- Check `secrets.yaml` has correct WiFi credentials
-- Verify `device_ip` is in your network range
-- Check your router allows the fixed IP
+## 🔧 Troubleshooting
 
-### Home Assistant not detected
-- Verify `ha_ip` is correct in substitutions
-- Test connectivity: `ping 192.168.1.100` from device network
-- Check HA port (default 8123)
+### "HA Online" sensor shows offline
+- Check `ha_url` is correct and accessible from device
+- Verify `ha_api_token` in secrets.yaml starts with "Bearer "
+- Test: `curl -H "Authorization: Bearer YOUR_TOKEN" https://192.168.1.100:8123/api/`
 
-### Touch panel not responding
-- Verify external component is correctly installed at `/config/esphome/components`
-- Check UART logs for touch events
+### Buttons don't work in normal mode
+- This is **correct** - buttons should trigger HA automations
+- Create automations in HA for each touchfield
+- Example HA automation:
+  ```yaml
+  - alias: "Living TX - Button 1"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.touchfield_1
+        to: 'on'
+    action:
+      - service: light.toggle
+        target:
+          entity_id: light.living_room
+  ```
 
-## Contributing
+### Buttons work as switches immediately
+- You're in failover mode (HA is offline or not configured)
+- Check logs: ESPHome → Device → Logs
+- Look for "HA offline" or "activando MODO MANUAL"
 
-Pull requests are welcome! For major changes, please open an issue first.
+### WiFi keeps restarting device
+- Check WiFi credentials in secrets.yaml
+- Ensure `use_address` IP is correct and available
+- Disable WiFi watchdog temporarily (remove interval section)
 
-## License
+---
 
-[MIT](LICENSE)
+## 🆚 Versions
 
-## Credits
+### Use stable version (recommended):
+```yaml
+packages:
+  remote_package:
+    url: https://github.com/cfpandrade/tx-ultimate-ha-failover
+    ref: v1.3.1  # Specific version
+    files: [tx_ultimate_base.yaml]
+```
 
-Based on the original TX Ultimate configuration by SmartHomeYourself
+### Use latest (auto-updates):
+```yaml
+packages:
+  remote_package:
+    url: https://github.com/cfpandrade/tx-ultimate-ha-failover
+    ref: main  # Latest changes
+    files: [tx_ultimate_base.yaml]
+```
+
+---
+
+## 🤝 Contributing
+
+Pull requests welcome! For major changes, please open an issue first.
+
+## 📜 License
+
+MIT License
+
+## 💡 Credits
+
+Based on the original TX Ultimate configuration by [SmartHomeYourself](https://github.com/SmartHome-yourself/sonoff-tx-ultimate-for-esphome)
+
+---
+
+## 📚 Advanced: Full Example
+
+See [tx_ultimate_example.yaml](tx_ultimate_example.yaml) for a complete configuration with all available options and detailed comments.
