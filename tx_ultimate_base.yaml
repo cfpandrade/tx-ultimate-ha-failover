@@ -102,6 +102,10 @@ globals:
     type: int [3]
     restore_value: no
     initial_value: ${touch_color}
+  - id: ha_failover_nightlight_color
+    type: int [3]
+    restore_value: no
+    initial_value: ${ha_failover_nightlight_color}
 
   # Variables para heartbeat HA y estado de relays
   - id: ha_last_seen
@@ -884,9 +888,9 @@ script:
                   - light.turn_on:
                       id: leds_nightlight
                       brightness: ${nightlight_brightness}
-                      red: 1.0
-                      green: 0.0
-                      blue: 0.0
+                      red: !lambda "return id(ha_failover_nightlight_color)[0]/100.0;"
+                      green: !lambda "return id(ha_failover_nightlight_color)[1]/100.0;"
+                      blue: !lambda "return id(ha_failover_nightlight_color)[2]/100.0;"
 
   - id: touch_led_marker
     mode: restart
