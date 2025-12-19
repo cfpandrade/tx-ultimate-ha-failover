@@ -40,6 +40,7 @@ substitutions:
 
   # Failover behavior
   ha_failover_turn_on_lights: "true"  # true for living room, false for bedrooms
+  ha_failover_nightlight_color: "{100,0,0}"  # Red alert when HA offline
 
   # Location (for nightlight)
   latitude: !secret latitude
@@ -50,7 +51,7 @@ substitutions:
   button_color: "{0,0,90}"
   nightlight: "on"
   nightlight_brightness: "0.2"
-  nightlight_color: "{80,70,0}"
+  nightlight_color: "{80,70,0}"  # Normal nightlight color
   touch_brightness: "1"
   touch_color: "{0,100,100}"
   touch_effect: "Scan"
@@ -194,14 +195,21 @@ Or use the ESPHome dashboard **"Install"** button.
 
 ### Failover Behavior
 
-**Living Room / Dining Room** (turn on lights):
+**Turn on lights when HA fails** (living room / dining room):
 ```yaml
 ha_failover_turn_on_lights: "true"
 ```
 
-**Bedroom / Bathroom** (keep current state):
+**Keep current state** (bedroom / bathroom):
 ```yaml
 ha_failover_turn_on_lights: "false"
+```
+
+**Nightlight alert color** (when HA is offline):
+```yaml
+ha_failover_nightlight_color: "{100,0,0}"  # Red alert
+ha_failover_nightlight_color: "{100,50,0}"  # Orange (less alarming)
+ha_failover_nightlight_color: "{0,0,100}"  # Blue (informational)
 ```
 
 ### LED Colors
