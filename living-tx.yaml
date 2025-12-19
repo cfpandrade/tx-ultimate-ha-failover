@@ -25,6 +25,7 @@ substitutions:
   # Failover Configuration
   ha_failover_turn_on_lights: "true"  # true para living, false para habitaciones
   ha_failover_nightlight_color: "{100,0,0}"  # Rojo oscuro para alerta cuando HA offline
+  ha_heartbeat_interval: "60s"  # Check HA connection every 60s (default)
 
   # Touch feedback colors
   touch_brightness: "1"
