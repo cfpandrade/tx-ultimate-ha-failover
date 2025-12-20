@@ -43,6 +43,11 @@ substitutions:
   ha_failover_nightlight_color: "{100,0,0}"  # Red alert when HA offline
   ha_heartbeat_interval: "60s"  # Check HA connection every 60s (default)
 
+  # Relay behavior (normal operation)
+  toggle_relay_1_on_touch: "false"  # false = HA control, true = physical switch
+  toggle_relay_2_on_touch: "false"
+  toggle_relay_3_on_touch: "false"
+
   # Location (for nightlight)
   latitude: !secret latitude
   longitude: !secret longitude
@@ -207,6 +212,41 @@ ha_heartbeat_interval: "30s"   # More frequent (faster failover detection)
 ha_heartbeat_interval: "120s"  # Less frequent (reduce network traffic)
 ```
 *Note: Failover activates after 10 consecutive failures. With 60s interval, that's ~10 minutes offline.*
+
+### Relay Behavior (Normal Operation)
+
+Control how each relay behaves **when HA is online**:
+
+**Option 1: HA Control (Recommended)** - Buttons trigger HA automations:
+```yaml
+toggle_relay_1_on_touch: "false"  # Button sends event to HA
+toggle_relay_2_on_touch: "false"  # HA automation controls the light
+toggle_relay_3_on_touch: "false"
+```
+- Buttons send events to Home Assistant
+- HA automations control the lights (scenes, brightness, color, etc.)
+- Most flexible option
+
+**Option 2: Physical Switch** - Buttons toggle relay directly:
+```yaml
+toggle_relay_1_on_touch: "true"   # Button toggles relay directly
+toggle_relay_2_on_touch: "true"   # Works like a traditional light switch
+toggle_relay_3_on_touch: "true"
+```
+- Buttons work like physical switches
+- No HA automation needed
+- Simple on/off control
+
+**Option 3: Mixed Mode** - Combine both (e.g., kitchen example):
+```yaml
+toggle_relay_1_on_touch: "true"   # Relay 1: physical switch
+toggle_relay_2_on_touch: "true"   # Relay 2: physical switch
+toggle_relay_3_on_touch: "false"  # Relay 3: HA control
+```
+- Use physical switches for simple lights
+- Use HA control for smart lights or complex scenes
+
+**⚠️ Important**: When HA goes offline, **ALL relays automatically become physical switches** regardless of these settings. When HA comes back online, they return to your configured behavior.
 
 ### LED Colors
 

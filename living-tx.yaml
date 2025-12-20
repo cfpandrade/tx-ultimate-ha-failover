@@ -27,6 +27,11 @@ substitutions:
   ha_failover_nightlight_color: "{100,0,0}"  # Rojo oscuro para alerta cuando HA offline
   ha_heartbeat_interval: "60s"  # Check HA connection every 60s (default)
 
+  # Relay Behavior (normal operation - before HA fails)
+  toggle_relay_1_on_touch: "false"  # false = HA control, true = physical switch
+  toggle_relay_2_on_touch: "false"
+  toggle_relay_3_on_touch: "false"
+
   # Touch feedback colors
   touch_brightness: "1"
   touch_color: "{0,100,100}"
@@ -61,7 +66,7 @@ packages:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
     ref: main
     files: [tx_ultimate_base.yaml]
-    refresh: 300s
+    refresh: 0s  # Force immediate update
 
 ##### My customization - Start #####
 
