@@ -141,19 +141,33 @@ globals:
     restore_value: no
     initial_value: 'false'
 
-  # Control dinámico de toggle manual
+  # Control dinámico de toggle manual (comportamiento actual)
   - id: toggle_relay_1_on_touch
     type: bool
     restore_value: no
-    initial_value: 'false'  # Normalmente controlado por HA
+    initial_value: ${toggle_relay_1_on_touch}
   - id: toggle_relay_2_on_touch
     type: bool
     restore_value: no
-    initial_value: 'false'
+    initial_value: ${toggle_relay_2_on_touch}
   - id: toggle_relay_3_on_touch
     type: bool
     restore_value: no
-    initial_value: 'false'
+    initial_value: ${toggle_relay_3_on_touch}
+
+  # Valores guardados del comportamiento normal (para restaurar cuando HA vuelve)
+  - id: toggle_relay_1_saved
+    type: bool
+    restore_value: no
+    initial_value: ${toggle_relay_1_on_touch}
+  - id: toggle_relay_2_saved
+    type: bool
+    restore_value: no
+    initial_value: ${toggle_relay_2_on_touch}
+  - id: toggle_relay_3_saved
+    type: bool
+    restore_value: no
+    initial_value: ${toggle_relay_3_on_touch}
 
   # Configuración failover
   - id: ha_failover_turn_on_lights
@@ -822,11 +836,11 @@ script:
                     ESP_LOGI("heartbeat", "HA volvió online! Restaurando comportamiento automático");
                     id(ha_offline_mode) = false;
 
-                    // DESACTIVAR MODO MANUAL (volver a control por HA)
-                    ESP_LOGI("heartbeat", "Desactivando modo manual, volviendo a control HA");
-                    id(toggle_relay_1_on_touch) = false;
-                    id(toggle_relay_2_on_touch) = false;
-                    id(toggle_relay_3_on_touch) = false;
+                    // RESTAURAR comportamiento normal de cada relay
+                    ESP_LOGI("heartbeat", "Restaurando comportamiento normal de relays");
+                    id(toggle_relay_1_on_touch) = id(toggle_relay_1_saved);
+                    id(toggle_relay_2_on_touch) = id(toggle_relay_2_saved);
+                    id(toggle_relay_3_on_touch) = id(toggle_relay_3_saved);
 
                     // Restaurar estados guardados de relays
                     if (id(relay_1).state != id(relay_1_saved_state)) {
