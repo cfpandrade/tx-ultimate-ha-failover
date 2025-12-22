@@ -117,7 +117,7 @@ wifi:
 1. In Home Assistant, click your **profile** (bottom left)
 2. Scroll to **"Long-Lived Access Tokens"**
 3. Click **"CREATE TOKEN"**
-4. Name it "TX Living Room"
+4. Name it "TX API Status"
 5. **Copy the token** (starts with "eyJ...")
 6. Add to `secrets.yaml`:
    ```yaml
