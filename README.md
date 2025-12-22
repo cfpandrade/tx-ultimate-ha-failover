@@ -121,7 +121,7 @@ wifi:
 5. **Copy the token**
 6. Add to `secrets.yaml`:
    ```yaml
-   tx_status_api_token: "Bearer YOUR_LONG_LIVED_TOKEN..."
+   tx_status_api_token: "Bearer ..."
    ```
    **Important**: Must start with "Bearer "
 
