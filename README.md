@@ -140,8 +140,8 @@ api_key: "generate-this-in-esphome-dashboard"  # Click the key icon
 ota_pass: "your-ota-password"
 
 # Location
-latitude: "40.7128°"
-longitude: "-74.0060°"
+latitude: ""
+longitude: ""
 
 # HA Token (from Step 2)
 tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
