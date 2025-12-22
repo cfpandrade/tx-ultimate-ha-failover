@@ -144,7 +144,7 @@ latitude: ""
 longitude: ""
 
 # HA Token (from Step 2)
-tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+tx_status_api_token: "Bearer ..."
 ```
 
 ### Step 4: Flash to device
