@@ -32,7 +32,7 @@ substitutions:
   friendly_name: "Living Room TX"
 
   # Home Assistant
-  ha_url: "https://192.168.1.100:8123"
+  ha_url: "https://XXX.XXX.XXX.XXX:8123"
   ha_api_token: !secret tx_status_api_token  # See Step 2
 
   # Hardware
