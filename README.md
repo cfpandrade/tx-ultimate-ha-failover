@@ -118,7 +118,7 @@ wifi:
 2. Scroll to **"Long-Lived Access Tokens"**
 3. Click **"CREATE TOKEN"**
 4. Name it "TX API Status"
-5. **Copy the token** (starts with "eyJ...")
+5. **Copy the token**
 6. Add to `secrets.yaml`:
    ```yaml
    tx_status_api_token: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
