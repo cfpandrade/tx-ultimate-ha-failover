@@ -714,59 +714,119 @@ script:
   - id: led_on_touch
     mode: restart
     then:
-      - light.turn_on:
-          id: leds_top
-          brightness: ${touch_brightness}
-          red: !lambda "return id(touch_color)[0]/100.0;"
-          green: !lambda "return id(touch_color)[1]/100.0;"
-          blue:  !lambda "return id(touch_color)[2]/100.0;"
-          effect: ${touch_effect}
+      - if:
+          condition:
+            lambda: |-
+              return "${touch_effect}" != "";
+          then:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${touch_brightness}
+                red: !lambda "return id(touch_color)[0]/100.0;"
+                green: !lambda "return id(touch_color)[1]/100.0;"
+                blue:  !lambda "return id(touch_color)[2]/100.0;"
+                effect: ${touch_effect}
+          else:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${touch_brightness}
+                red: !lambda "return id(touch_color)[0]/100.0;"
+                green: !lambda "return id(touch_color)[1]/100.0;"
+                blue:  !lambda "return id(touch_color)[2]/100.0;"
       - delay: 6s
       - script.execute: refresh_led_default
 
   - id: led_on_swipe_left
     mode: restart
     then:
-      - light.turn_on:
-          id: leds_top
-          brightness: ${swipe_left_brightness}
-          red: !lambda "return id(swipe_left_color)[0]/100.0;"
-          green: !lambda "return id(swipe_left_color)[1]/100.0;"
-          blue:  !lambda "return id(swipe_left_color)[2]/100.0;"
-          effect: ${swipe_left_effect}
+      - if:
+          condition:
+            lambda: |-
+              return "${swipe_left_effect}" != "";
+          then:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${swipe_left_brightness}
+                red: !lambda "return id(swipe_left_color)[0]/100.0;"
+                green: !lambda "return id(swipe_left_color)[1]/100.0;"
+                blue:  !lambda "return id(swipe_left_color)[2]/100.0;"
+                effect: ${swipe_left_effect}
+          else:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${swipe_left_brightness}
+                red: !lambda "return id(swipe_left_color)[0]/100.0;"
+                green: !lambda "return id(swipe_left_color)[1]/100.0;"
+                blue:  !lambda "return id(swipe_left_color)[2]/100.0;"
 
   - id: led_on_swipe_right
     mode: restart
     then:
-      - light.turn_on:
-          id: leds_top
-          brightness: ${swipe_right_brightness}
-          red: !lambda "return id(swipe_right_color)[0]/100.0;"
-          green: !lambda "return id(swipe_right_color)[1]/100.0;"
-          blue:  !lambda "return id(swipe_right_color)[2]/100.0;"
-          effect: ${swipe_right_effect}
+      - if:
+          condition:
+            lambda: |-
+              return "${swipe_right_effect}" != "";
+          then:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${swipe_right_brightness}
+                red: !lambda "return id(swipe_right_color)[0]/100.0;"
+                green: !lambda "return id(swipe_right_color)[1]/100.0;"
+                blue:  !lambda "return id(swipe_right_color)[2]/100.0;"
+                effect: ${swipe_right_effect}
+          else:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${swipe_right_brightness}
+                red: !lambda "return id(swipe_right_color)[0]/100.0;"
+                green: !lambda "return id(swipe_right_color)[1]/100.0;"
+                blue:  !lambda "return id(swipe_right_color)[2]/100.0;"
 
   - id: led_on_full_touch
     mode: restart
     then:
-      - light.turn_on:
-          id: leds_top
-          brightness: ${multi_touch_brightness}
-          red: !lambda "return id(multi_touch_color)[0]/100.0;"
-          green: !lambda "return id(multi_touch_color)[1]/100.0;"
-          blue:  !lambda "return id(multi_touch_color)[2]/100.0;"
-          effect: ${multi_touch_effect}
+      - if:
+          condition:
+            lambda: |-
+              return "${multi_touch_effect}" != "";
+          then:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${multi_touch_brightness}
+                red: !lambda "return id(multi_touch_color)[0]/100.0;"
+                green: !lambda "return id(multi_touch_color)[1]/100.0;"
+                blue:  !lambda "return id(multi_touch_color)[2]/100.0;"
+                effect: ${multi_touch_effect}
+          else:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${multi_touch_brightness}
+                red: !lambda "return id(multi_touch_color)[0]/100.0;"
+                green: !lambda "return id(multi_touch_color)[1]/100.0;"
+                blue:  !lambda "return id(multi_touch_color)[2]/100.0;"
 
   - id: led_on_long_touch
     mode: restart
     then:
-      - light.turn_on:
-          id: leds_top
-          brightness: ${long_press_brightness}
-          red: !lambda "return id(long_press_color)[0]/100.0;"
-          green: !lambda "return id(long_press_color)[1]/100.0;"
-          blue:  !lambda "return id(long_press_color)[2]/100.0;"
-          effect: ${long_press_effect}
+      - if:
+          condition:
+            lambda: |-
+              return "${long_press_effect}" != "";
+          then:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${long_press_brightness}
+                red: !lambda "return id(long_press_color)[0]/100.0;"
+                green: !lambda "return id(long_press_color)[1]/100.0;"
+                blue:  !lambda "return id(long_press_color)[2]/100.0;"
+                effect: ${long_press_effect}
+          else:
+            - light.turn_on:
+                id: leds_top
+                brightness: ${long_press_brightness}
+                red: !lambda "return id(long_press_color)[0]/100.0;"
+                green: !lambda "return id(long_press_color)[1]/100.0;"
+                blue:  !lambda "return id(long_press_color)[2]/100.0;"
 
   - id: handle_release
     mode: restart
