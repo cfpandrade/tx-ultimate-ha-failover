@@ -739,119 +739,89 @@ script:
   - id: led_on_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return "${touch_effect}" != "";
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${touch_brightness}
-                red: !lambda "return id(touch_color)[0]/100.0;"
-                green: !lambda "return id(touch_color)[1]/100.0;"
-                blue:  !lambda "return id(touch_color)[2]/100.0;"
-                effect: ${touch_effect}
-          else:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${touch_brightness}
-                red: !lambda "return id(touch_color)[0]/100.0;"
-                green: !lambda "return id(touch_color)[1]/100.0;"
-                blue:  !lambda "return id(touch_color)[2]/100.0;"
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${touch_brightness});
+          call.set_rgb(
+            id(touch_color)[0] / 100.0f,
+            id(touch_color)[1] / 100.0f,
+            id(touch_color)[2] / 100.0f
+          );
+          const std::string effect = "${touch_effect}";
+          if (!effect.empty()) {
+            call.set_effect(effect);
+          }
+          call.perform();
       - delay: 6s
       - script.execute: refresh_led_default
 
   - id: led_on_swipe_left
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return "${swipe_left_effect}" != "";
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${swipe_left_brightness}
-                red: !lambda "return id(swipe_left_color)[0]/100.0;"
-                green: !lambda "return id(swipe_left_color)[1]/100.0;"
-                blue:  !lambda "return id(swipe_left_color)[2]/100.0;"
-                effect: ${swipe_left_effect}
-          else:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${swipe_left_brightness}
-                red: !lambda "return id(swipe_left_color)[0]/100.0;"
-                green: !lambda "return id(swipe_left_color)[1]/100.0;"
-                blue:  !lambda "return id(swipe_left_color)[2]/100.0;"
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${swipe_left_brightness});
+          call.set_rgb(
+            id(swipe_left_color)[0] / 100.0f,
+            id(swipe_left_color)[1] / 100.0f,
+            id(swipe_left_color)[2] / 100.0f
+          );
+          const std::string effect = "${swipe_left_effect}";
+          if (!effect.empty()) {
+            call.set_effect(effect);
+          }
+          call.perform();
 
   - id: led_on_swipe_right
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return "${swipe_right_effect}" != "";
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${swipe_right_brightness}
-                red: !lambda "return id(swipe_right_color)[0]/100.0;"
-                green: !lambda "return id(swipe_right_color)[1]/100.0;"
-                blue:  !lambda "return id(swipe_right_color)[2]/100.0;"
-                effect: ${swipe_right_effect}
-          else:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${swipe_right_brightness}
-                red: !lambda "return id(swipe_right_color)[0]/100.0;"
-                green: !lambda "return id(swipe_right_color)[1]/100.0;"
-                blue:  !lambda "return id(swipe_right_color)[2]/100.0;"
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${swipe_right_brightness});
+          call.set_rgb(
+            id(swipe_right_color)[0] / 100.0f,
+            id(swipe_right_color)[1] / 100.0f,
+            id(swipe_right_color)[2] / 100.0f
+          );
+          const std::string effect = "${swipe_right_effect}";
+          if (!effect.empty()) {
+            call.set_effect(effect);
+          }
+          call.perform();
 
   - id: led_on_full_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return "${multi_touch_effect}" != "";
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${multi_touch_brightness}
-                red: !lambda "return id(multi_touch_color)[0]/100.0;"
-                green: !lambda "return id(multi_touch_color)[1]/100.0;"
-                blue:  !lambda "return id(multi_touch_color)[2]/100.0;"
-                effect: ${multi_touch_effect}
-          else:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${multi_touch_brightness}
-                red: !lambda "return id(multi_touch_color)[0]/100.0;"
-                green: !lambda "return id(multi_touch_color)[1]/100.0;"
-                blue:  !lambda "return id(multi_touch_color)[2]/100.0;"
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${multi_touch_brightness});
+          call.set_rgb(
+            id(multi_touch_color)[0] / 100.0f,
+            id(multi_touch_color)[1] / 100.0f,
+            id(multi_touch_color)[2] / 100.0f
+          );
+          const std::string effect = "${multi_touch_effect}";
+          if (!effect.empty()) {
+            call.set_effect(effect);
+          }
+          call.perform();
 
   - id: led_on_long_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return "${long_press_effect}" != "";
-          then:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${long_press_brightness}
-                red: !lambda "return id(long_press_color)[0]/100.0;"
-                green: !lambda "return id(long_press_color)[1]/100.0;"
-                blue:  !lambda "return id(long_press_color)[2]/100.0;"
-                effect: ${long_press_effect}
-          else:
-            - light.turn_on:
-                id: leds_top
-                brightness: ${long_press_brightness}
-                red: !lambda "return id(long_press_color)[0]/100.0;"
-                green: !lambda "return id(long_press_color)[1]/100.0;"
-                blue:  !lambda "return id(long_press_color)[2]/100.0;"
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${long_press_brightness});
+          call.set_rgb(
+            id(long_press_color)[0] / 100.0f,
+            id(long_press_color)[1] / 100.0f,
+            id(long_press_color)[2] / 100.0f
+          );
+          const std::string effect = "${long_press_effect}";
+          if (!effect.empty()) {
+            call.set_effect(effect);
+          }
+          call.perform();
 
   - id: handle_release
     mode: restart
