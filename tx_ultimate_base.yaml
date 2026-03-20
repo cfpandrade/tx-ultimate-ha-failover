@@ -720,9 +720,9 @@ script:
                 const bool middle_on = (${relay_count} == 3 && id(relay_2).state) || (${relay_count} == 1 && id(relay_1).state);
                 const bool right_on = (${relay_count} == 2 && id(relay_2).state) || (${relay_count} == 3 && id(relay_3).state);
 
-                auto apply_zone = [&](auto &zone, bool zone_on) {
+                auto apply_zone = [&](auto *zone, bool zone_on) {
                   if (top_enabled && zone_on) {
-                    auto call = zone.turn_on();
+                    auto call = zone->turn_on();
                     call.set_brightness(selected_brightness);
                     call.set_rgb(state_red, state_green, state_blue);
                     call.perform();
@@ -730,14 +730,14 @@ script:
                   }
 
                   if (show_nightlight) {
-                    auto call = zone.turn_on();
+                    auto call = zone->turn_on();
                     call.set_brightness(${nightlight_brightness});
                     call.set_rgb(night_red, night_green, night_blue);
                     call.perform();
                     return;
                   }
 
-                  zone.turn_off().perform();
+                  zone->turn_off().perform();
                 };
 
                 if (${relay_count} == 1) {
