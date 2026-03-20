@@ -25,6 +25,7 @@ substitutions:
   ha_url: "https://home-assistant.local:8123"   # Your Home Assistant URL
   ha_api_token: "Bearer YOUR_LONG_LIVED_TOKEN_HERE"  # See instructions below
   ha_verify_ssl: "false"                  # Set to "true" when HA uses a valid trusted certificate
+  ha_max_failures_before_failover: "10"   # Number of consecutive failed checks before failover mode
 
   # ================================
   # HARDWARE CONFIGURATION
@@ -38,6 +39,20 @@ substitutions:
   # ================================
   button_brightness: "0"
   button_color: "{0,0,90}"           # Button active color (blue)
+
+  relay_state_top_enabled: "true"          # Show persistent top-segment state for active relays
+  relay_state_top_color: "{0,0,100}"       # Top-segment color when relay is ON
+  relay_state_top_brightness_active: "0.30"
+  relay_state_top_brightness_idle: "0.12"
+  relay_state_top_brightness_night: "0.05"
+
+  relay_state_button_color: "{0,0,100}"    # Bottom button color when relay is ON
+  relay_state_button_brightness_active: "0.22"
+  relay_state_button_brightness_idle: "0.10"
+  relay_state_button_brightness_night: "0.04"
+
+  led_idle_timeout: "15s"                  # After this time, persistent relay-state LEDs dim down
+  led_feedback_restore_delay: "800ms"      # How long touch feedback stays before returning to relay state
 
   nightlight: "on"                   # "on" or "off"
   nightlight_brightness: "0.2"
