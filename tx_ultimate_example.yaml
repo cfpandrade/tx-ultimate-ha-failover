@@ -167,4 +167,4 @@ wifi:
 # ota_pass: "your-ota-password"
 # latitude: "00.0000°"
 # longitude: "00.0000°"
-# tx_status_api_token: "Bearer YOUR_LONG_LIVED_TOKEN..."
+# tx_status_api_token: "Bearer YOUR_LONG_LIVED_TOKEN"
