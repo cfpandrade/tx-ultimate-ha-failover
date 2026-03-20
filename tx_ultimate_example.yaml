@@ -16,7 +16,7 @@ substitutions:
   # ================================
   # DEVICE CONFIGURATION
   # ================================
-  name: 'living_tx'
+  name: 'living-tx'
   friendly_name: "Living-TX"
 
   # ================================
@@ -24,6 +24,7 @@ substitutions:
   # ================================
   ha_url: "https://home-assistant.local:8123"   # Your Home Assistant URL
   ha_api_token: "Bearer YOUR_LONG_LIVED_TOKEN_HERE"  # See instructions below
+  ha_verify_ssl: "false"                  # Set to "true" when HA uses a valid trusted certificate
 
   # ================================
   # HARDWARE CONFIGURATION
@@ -48,7 +49,7 @@ substitutions:
 
   long_press_brightness: "1"
   long_press_color: "{100,0,0}"      # Long press color (red)
-  long_press_effect: ""
+  long_press_effect: ""                   # Empty string = no animation effect
 
   multi_touch_brightness: "1"
   multi_touch_color: "{0,0,0}"       # Multi-touch color (off)
@@ -56,11 +57,11 @@ substitutions:
 
   swipe_left_brightness: "1"
   swipe_left_color: "{0,100,0}"      # Swipe left color (green)
-  swipe_left_effect: ""
+  swipe_left_effect: ""                   # Empty string = no animation effect
 
   swipe_right_brightness: "1"
   swipe_right_color: "{100,0,70}"    # Swipe right color (purple)
-  swipe_right_effect: ""
+  swipe_right_effect: ""                  # Empty string = no animation effect
 
   # ================================
   # FAILOVER CONFIGURATION
@@ -96,7 +97,7 @@ substitutions:
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: main  # Use 'main' for latest, or specific tag like 'v1.3.1'
+    ref: v1.3.2  # Recommended: pin to a release tag for stable builds
     files: [tx_ultimate_base.yaml]
     refresh: 300s  # Check for updates every 5 minutes
 

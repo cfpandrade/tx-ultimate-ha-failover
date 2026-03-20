@@ -34,6 +34,7 @@ substitutions:
   # Home Assistant
   ha_url: "https://XXX.XXX.XXX.XXX:8123"
   ha_api_token: !secret tx_status_api_token  # See Step 2
+  ha_verify_ssl: "false"  # Set to "true" if HA uses a valid trusted certificate
 
   # Hardware
   relay_count: "2"  # Number of relays: 1, 2, or 3
@@ -63,16 +64,16 @@ substitutions:
   touch_effect: "Scan"
   long_press_brightness: "1"
   long_press_color: "{100,0,0}"
-  long_press_effect: ""
+  long_press_effect: ""  # Empty string = no animation effect
   multi_touch_brightness: "1"
   multi_touch_color: "{0,0,0}"
   multi_touch_effect: "Rainbow"
   swipe_left_brightness: "1"
   swipe_left_color: "{0,100,0}"
-  swipe_left_effect: ""
+  swipe_left_effect: ""  # Empty string = no animation effect
   swipe_right_brightness: "1"
   swipe_right_color: "{100,0,70}"
-  swipe_right_effect: ""
+  swipe_right_effect: ""  # Empty string = no animation effect
 
   # Timings
   vibra_time: 400ms
@@ -87,7 +88,7 @@ substitutions:
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: main  # or use 'v1.3.1' for specific version
+    ref: v1.3.2  # Recommended: pin to a release tag
     files: [tx_ultimate_base.yaml]
     refresh: 300s
 
@@ -156,6 +157,13 @@ esphome run living-tx.yaml
 Or use the ESPHome dashboard **"Install"** button.
 
 **Done!** ✅
+
+### Recommended Defaults
+
+- Use `-` in `name` values, not `_`, to avoid mDNS and DHCP issues.
+- Prefer release tags like `v1.3.2` instead of `main` for predictable builds.
+- `long_press_effect: ""`, `swipe_left_effect: ""`, and similar empty values are valid and mean "no animation".
+- Keep `ha_verify_ssl: "false"` only if you access HA by IP or with a self-signed certificate. Use `"true"` when your HA certificate is valid and trusted by the device.
 
 ---
 
@@ -265,6 +273,16 @@ relay_count: "2"  # Two buttons (left + right)
 relay_count: "3"  # Three buttons (left + middle + right)
 ```
 
+### Effect Values
+
+```yaml
+touch_effect: "Scan"
+multi_touch_effect: "Rainbow"
+swipe_left_effect: ""
+```
+
+Use an empty string (`""`) when you want a solid color with no LED animation effect.
+
 ---
 
 ## 📁 Repository Structure
@@ -285,6 +303,7 @@ tx-ultimate-ha-failover/
 ### "HA Online" sensor shows offline
 - Check `ha_url` is correct and accessible from device
 - Verify `ha_api_token` in secrets.yaml starts with "Bearer "
+- If `ha_verify_ssl: "true"`, make sure Home Assistant presents a certificate trusted by the device
 - Test: `curl -H "Authorization: Bearer YOUR_TOKEN" https://home-assistant.local:8123/api/`
 
 ### Buttons don't work in normal mode
@@ -322,7 +341,7 @@ tx-ultimate-ha-failover/
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: v1.3.1  # Specific version
+    ref: v1.3.2  # Specific version
     files: [tx_ultimate_base.yaml]
 ```
 
