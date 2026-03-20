@@ -1,14 +1,18 @@
 # TX Ultimate HA Failover - Base Configuration
-# Version: 1.3.1
+# Version: 1.3.2
 # This file contains all the core functionality
 # Include this via packages in your device config
+
+substitutions:
+  package_version: "1.3.2"
+  ha_verify_ssl: "false"
 
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
   project:
     name: smarthomeyourself.tx_ultimate
-    version: "1.3.1"
+    version: ${package_version}
 
   platformio_options:
     build_flags:
@@ -43,6 +47,27 @@ esphome:
       # Inicializar heartbeat HA
       - lambda: |-
           id(ha_last_seen) = millis();
+
+          const std::string device_name = "${name}";
+          const std::string ha_url = "${ha_url}";
+          const std::string ha_token = "${ha_api_token}";
+          const int relay_count = ${relay_count};
+
+          if (device_name.find('_') != std::string::npos) {
+            ESP_LOGW("config", "El nombre '%s' contiene '_' y puede causar problemas con mDNS/DHCP. Recomendado usar '-'.", device_name.c_str());
+          }
+
+          if (relay_count < 1 || relay_count > 3) {
+            ESP_LOGE("config", "relay_count=%d es invalido. Debe ser 1, 2 o 3.", relay_count);
+          }
+
+          if (!(ha_url.rfind("http://", 0) == 0 || ha_url.rfind("https://", 0) == 0)) {
+            ESP_LOGW("config", "ha_url debe empezar por http:// o https://. Valor actual: %s", ha_url.c_str());
+          }
+
+          if (ha_token.rfind("Bearer ", 0) != 0) {
+            ESP_LOGW("config", "ha_api_token deberia empezar por 'Bearer '.");
+          }
       - delay: 5s
       - script.execute: check_ha_heartbeat
 
@@ -75,7 +100,7 @@ external_components:
 # HTTP request para verificar HA
 http_request:
   timeout: 5s
-  verify_ssl: false
+  verify_ssl: ${ha_verify_ssl}
 
 globals:
   - id: nightlight_color
