@@ -54,6 +54,9 @@ esphome:
       - binary_sensor.template.publish:
           id: long_press
           state: OFF
+      - binary_sensor.template.publish:
+          id: ha_online
+          state: OFF
       - script.execute: refresh_led_default
       - script.execute: refresh_nightlight
       # Inicializar heartbeat HA
@@ -421,7 +424,7 @@ light:
     num_leds: 28
     name: "NeoPixel Light"
     id: leds
-    default_transition_length: 5s
+    default_transition_length: 0s
     effects:
       - addressable_rainbow:
           name: "Rainbow"
@@ -1066,6 +1069,7 @@ script:
                   // Actualizar timestamp y resetear contador de fallos
                   id(ha_last_seen) = millis();
                   id(ha_failed_checks) = 0;
+                  id(ha_online).publish_state(true);
 
                   // Si estábamos en modo offline, restaurar estados
                   if (id(ha_offline_mode)) {
@@ -1091,8 +1095,6 @@ script:
                       ESP_LOGI("heartbeat", "Restaurando Relay 3 a: %s", id(relay_3_saved_state) ? "ON" : "OFF");
                       id(relay_3_saved_state) ? id(relay_3).turn_on() : id(relay_3).turn_off();
                     }
-
-                    id(ha_online).publish_state(true);
                     id(led_feedback_active) = false;
                     id(led_idle_mode) = false;
                     id(register_led_activity).execute();
