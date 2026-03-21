@@ -112,7 +112,7 @@ substitutions:
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: v1.3.2  # Recommended: pin to a release tag for stable builds
+    ref: v1.3.5  # Recommended: pin to a release tag for stable builds
     files: [tx_ultimate_base.yaml]
     refresh: 300s  # Check for updates every 5 minutes
 
