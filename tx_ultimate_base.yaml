@@ -485,6 +485,7 @@ light:
           update_interval: 1s
     on_turn_off:
       then:
+        - script.execute: clear_all_leds
         - script.execute: refresh_led_default
 
   - platform: partition
@@ -532,9 +533,6 @@ light:
       - id: leds
         from: 27
         to: 27
-      - id: leds_top
-        from: 0
-        to: 6
 
   - platform: partition
     name: "LEDs Top"
@@ -706,6 +704,26 @@ script:
                 else:
                   - switch.turn_off:
                       id: nightlight
+
+  - id: clear_all_leds
+    mode: restart
+    then:
+      - light.addressable_set:
+          id: leds
+          range_from: 0
+          range_to: 27
+          red: 0%
+          green: 0%
+          blue: 0%
+      - light.turn_off: leds_nightlight
+      - light.turn_off: leds_button_left
+      - light.turn_off: leds_button_middle
+      - light.turn_off: leds_button_right
+      - light.turn_off: leds_top_left
+      - light.turn_off: leds_top_middle
+      - light.turn_off: leds_top_right
+      - light.turn_off: leds_top
+      - light.turn_off: leds
 
   - id: refresh_led_default
     mode: restart
