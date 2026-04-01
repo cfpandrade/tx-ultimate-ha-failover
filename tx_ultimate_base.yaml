@@ -723,7 +723,6 @@ script:
       - light.turn_off: leds_top_middle
       - light.turn_off: leds_top_right
       - light.turn_off: leds_top
-      - light.turn_off: leds
 
   - id: refresh_led_default
     mode: restart
