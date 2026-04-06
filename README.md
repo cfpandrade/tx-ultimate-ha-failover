@@ -66,8 +66,8 @@ substitutions:
   long_press_color: "{100,0,0}"
   long_press_effect: ""  # Empty string = no animation effect
   multi_touch_brightness: "1"
-  multi_touch_color: "{0,0,0}"
-  multi_touch_effect: "Rainbow"
+  multi_touch_color: "{100,100,100}"
+  multi_touch_effect: ""  # Empty string = no animation effect
   swipe_left_brightness: "1"
   swipe_left_color: "{0,100,0}"
   swipe_left_effect: ""  # Empty string = no animation effect
@@ -277,11 +277,11 @@ relay_count: "3"  # Three buttons (left + middle + right)
 
 ```yaml
 touch_effect: "Scan"
-multi_touch_effect: "Rainbow"
+multi_touch_effect: ""
 swipe_left_effect: ""
 ```
 
-Use an empty string (`""`) when you want a solid color with no LED animation effect.
+Use `Scan` for the top-bar scan animation, or an empty string (`""`) for a solid color with no LED animation effect.
 
 ---
 
