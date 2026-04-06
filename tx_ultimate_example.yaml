@@ -67,8 +67,8 @@ substitutions:
   long_press_effect: ""                   # Empty string = no animation effect
 
   multi_touch_brightness: "1"
-  multi_touch_color: "{0,0,0}"       # Multi-touch color (off)
-  multi_touch_effect: "Rainbow"
+  multi_touch_color: "{100,100,100}" # Multi-touch color (white)
+  multi_touch_effect: ""             # Empty string = no animation effect
 
   swipe_left_brightness: "1"
   swipe_left_color: "{0,100,0}"      # Swipe left color (green)
