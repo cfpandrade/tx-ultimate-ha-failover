@@ -21,6 +21,8 @@ substitutions:
   relay_state_button_brightness_night: "0.04"
   led_idle_timeout: "15s"
   led_feedback_restore_delay: "800ms"
+  swipe_left_duration: "3s"
+  swipe_right_duration: "3s"
 
 esphome:
   name: ${name}
@@ -31,7 +33,8 @@ esphome:
 
   platformio_options:
     build_flags:
-      - -Wno-deprecated-declarations  # Suppress I2S and ADC deprecation warnings
+      - -Wno-deprecated-declarations  # Suppress __attribute__((deprecated)) warnings
+      - -Wno-cpp                       # Suppress #warning preprocessor warnings (legacy I2S/ADC driver notices)
 
   on_boot:
     priority: -100
@@ -93,6 +96,7 @@ esp32:
   board: esp32dev
   framework:
     type: arduino
+    platform_version: 6.5.0  # Pin to avoid sdkconfig.h build failure in ESPHome 2026.3.x
 
 logger:
   level: INFO
@@ -590,20 +594,25 @@ light:
         from: 24
         to: 26
 
-media_player:
+i2s_audio:
+  id: audio_i2s
+  i2s_lrclk_pin: GPIO4   # TX Ultimate hardware pin
+  i2s_bclk_pin: GPIO2    # TX Ultimate hardware pin
+
+speaker:
   - platform: i2s_audio
-    id: media_out
-    name: ${friendly_name} Player
+    id: media_speaker
     dac_type: external
     i2s_dout_pin: GPIO15  # TX Ultimate hardware pin
     i2s_audio_id: audio_i2s
     i2s_comm_fmt: lsb
     mode: mono
 
-i2s_audio:
-  id: audio_i2s
-  i2s_lrclk_pin: GPIO4   # TX Ultimate hardware pin
-  i2s_bclk_pin: GPIO2    # TX Ultimate hardware pin
+media_player:
+  - platform: speaker
+    id: media_out
+    name: ${friendly_name} Player
+    speaker: media_speaker
 
 uart:
   tx_pin: GPIO19  # TX Ultimate hardware pin
@@ -1072,7 +1081,7 @@ script:
                   call.set_effect(effect);
                 }
                 call.perform();
-            - delay: ${led_feedback_restore_delay}
+            - delay: ${swipe_left_duration}
             - lambda: |-
                 id(led_feedback_active) = false;
             - script.execute: refresh_led_default
@@ -1100,7 +1109,7 @@ script:
                   call.set_effect(effect);
                 }
                 call.perform();
-            - delay: ${led_feedback_restore_delay}
+            - delay: ${swipe_right_duration}
             - lambda: |-
                 id(led_feedback_active) = false;
             - script.execute: refresh_led_default
