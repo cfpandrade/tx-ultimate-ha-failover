@@ -611,7 +611,8 @@ media_player:
   - platform: speaker
     id: media_out
     name: ${friendly_name} Player
-    speaker: media_speaker
+    announcement_pipeline:
+      speaker: media_speaker
 
 uart:
   tx_pin: GPIO19  # TX Ultimate hardware pin
