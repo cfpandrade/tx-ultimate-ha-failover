@@ -96,7 +96,7 @@ esp32:
   board: esp32dev
   framework:
     type: arduino
-    version: recommended
+    version: 2.0.13
     platform_version: 6.5.0  # Pin to avoid sdkconfig.h build failure in ESPHome 2026.3.x
 
 logger:
