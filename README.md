@@ -60,7 +60,7 @@ substitutions:
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"  # Normal nightlight color
   touch_brightness: "1"
-  touch_color: "{0,100,100}"
+  touch_color: "{0,0,100}"       # Blue flash for toggle lights
   touch_effect: "Scan"
   long_press_brightness: "1"
   long_press_color: "{100,0,0}"
@@ -69,10 +69,10 @@ substitutions:
   multi_touch_color: "{100,100,100}"
   multi_touch_effect: ""  # Empty string = no animation effect
   swipe_left_brightness: "1"
-  swipe_left_color: "{0,100,0}"
+  swipe_left_color: "{0,100,0}"  # Green flash for opening blinds
   swipe_left_effect: ""  # Empty string = no animation effect
   swipe_right_brightness: "1"
-  swipe_right_color: "{100,0,70}"
+  swipe_right_color: "{100,0,0}" # Red flash for closing blinds
   swipe_right_effect: ""  # Empty string = no animation effect
 
   # Timings
@@ -255,6 +255,30 @@ toggle_relay_3_on_touch: "false"  # Relay 3: HA control
 - Use HA control for smart lights or complex scenes
 
 **⚠️ Important**: When HA goes offline, **ALL relays automatically become physical switches** regardless of these settings. When HA comes back online, they return to your configured behavior.
+
+### LED Feedback Behavior
+
+The TX Ultimate provides **temporary visual feedback** on the full LED perimeter for 2 seconds to confirm commands:
+
+**Default feedback colors:**
+```yaml
+touch_color: "{0,0,100}"          # Blue flash when toggling lights
+swipe_left_color: "{0,100,0}"     # Green flash when opening blinds
+swipe_right_color: "{100,0,0}"    # Red flash when closing blinds
+led_feedback_restore_delay: "2s"  # How long the feedback lasts
+```
+
+**Disable permanent relay state indication (default):**
+```yaml
+relay_state_top_enabled: "false"  # No persistent LEDs, only temporary feedback
+```
+
+**Enable permanent relay state indication (legacy behavior):**
+```yaml
+relay_state_top_enabled: "true"   # Top LED segments stay on when relay is active
+```
+
+With `relay_state_top_enabled: "true"`, the top LED segments show which relays are on (blue by default), and touch feedback overlays on top temporarily before restoring to the state indication.
 
 ### LED Colors
 

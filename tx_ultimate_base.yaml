@@ -11,7 +11,7 @@ substitutions:
   touch_cooldown_1_default: "0"
   touch_cooldown_2_default: "0"
   touch_cooldown_3_default: "0"
-  relay_state_top_enabled: "true"
+  relay_state_top_enabled: "false"
   relay_state_top_color: "{0,0,100}"
   relay_state_top_brightness_active: "0.30"
   relay_state_top_brightness_idle: "0.12"
@@ -21,9 +21,9 @@ substitutions:
   relay_state_button_brightness_idle: "0.10"
   relay_state_button_brightness_night: "0.04"
   led_idle_timeout: "15s"
-  led_feedback_restore_delay: "800ms"
-  swipe_left_duration: "3s"
-  swipe_right_duration: "3s"
+  led_feedback_restore_delay: "2s"
+  swipe_left_duration: "2s"
+  swipe_right_duration: "2s"
 
 esphome:
   name: ${name}
@@ -1034,142 +1034,117 @@ script:
   - id: led_on_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(relay_state_top_enabled_runtime);
-          then:
-            - lambda: |-
-                id(led_feedback_active) = true;
-            - lambda: |-
-                auto call = id(leds_top).turn_on();
-                call.set_brightness(${touch_brightness});
-                call.set_rgb(
-                  id(touch_color)[0] / 100.0f,
-                  id(touch_color)[1] / 100.0f,
-                  id(touch_color)[2] / 100.0f
-                );
-                const std::string effect = "${touch_effect}";
-                if (effect == "Scan") {
-                  call.set_effect(effect);
-                }
-                call.perform();
-            - delay: ${led_feedback_restore_delay}
-            - lambda: |-
-                id(led_feedback_active) = false;
-            - script.execute: refresh_led_default
+      - lambda: |-
+          id(led_feedback_active) = true;
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${touch_brightness});
+          call.set_rgb(
+            id(touch_color)[0] / 100.0f,
+            id(touch_color)[1] / 100.0f,
+            id(touch_color)[2] / 100.0f
+          );
+          const std::string effect = "${touch_effect}";
+          if (effect == "Scan") {
+            call.set_effect(effect);
+          }
+          call.perform();
+      - delay: ${led_feedback_restore_delay}
+      - lambda: |-
+          id(led_feedback_active) = false;
+      - script.execute: refresh_led_default
 
   - id: led_on_swipe_left
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(relay_state_top_enabled_runtime);
-          then:
-            - lambda: |-
-                id(led_feedback_active) = true;
-            - lambda: |-
-                auto call = id(leds_top).turn_on();
-                call.set_brightness(${swipe_left_brightness});
-                call.set_rgb(
-                  id(swipe_left_color)[0] / 100.0f,
-                  id(swipe_left_color)[1] / 100.0f,
-                  id(swipe_left_color)[2] / 100.0f
-                );
-                const std::string effect = "${swipe_left_effect}";
-                if (effect == "Scan") {
-                  call.set_effect(effect);
-                }
-                call.perform();
-            - delay: ${swipe_left_duration}
-            - lambda: |-
-                id(led_feedback_active) = false;
-            - script.execute: refresh_led_default
+      - lambda: |-
+          id(led_feedback_active) = true;
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${swipe_left_brightness});
+          call.set_rgb(
+            id(swipe_left_color)[0] / 100.0f,
+            id(swipe_left_color)[1] / 100.0f,
+            id(swipe_left_color)[2] / 100.0f
+          );
+          const std::string effect = "${swipe_left_effect}";
+          if (effect == "Scan") {
+            call.set_effect(effect);
+          }
+          call.perform();
+      - delay: ${swipe_left_duration}
+      - lambda: |-
+          id(led_feedback_active) = false;
+      - script.execute: refresh_led_default
 
   - id: led_on_swipe_right
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(relay_state_top_enabled_runtime);
-          then:
-            - lambda: |-
-                id(led_feedback_active) = true;
-            - lambda: |-
-                auto call = id(leds_top).turn_on();
-                call.set_brightness(${swipe_right_brightness});
-                call.set_rgb(
-                  id(swipe_right_color)[0] / 100.0f,
-                  id(swipe_right_color)[1] / 100.0f,
-                  id(swipe_right_color)[2] / 100.0f
-                );
-                const std::string effect = "${swipe_right_effect}";
-                if (effect == "Scan") {
-                  call.set_effect(effect);
-                }
-                call.perform();
-            - delay: ${swipe_right_duration}
-            - lambda: |-
-                id(led_feedback_active) = false;
-            - script.execute: refresh_led_default
+      - lambda: |-
+          id(led_feedback_active) = true;
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${swipe_right_brightness});
+          call.set_rgb(
+            id(swipe_right_color)[0] / 100.0f,
+            id(swipe_right_color)[1] / 100.0f,
+            id(swipe_right_color)[2] / 100.0f
+          );
+          const std::string effect = "${swipe_right_effect}";
+          if (effect == "Scan") {
+            call.set_effect(effect);
+          }
+          call.perform();
+      - delay: ${swipe_right_duration}
+      - lambda: |-
+          id(led_feedback_active) = false;
+      - script.execute: refresh_led_default
 
   - id: led_on_full_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(relay_state_top_enabled_runtime);
-          then:
-            - lambda: |-
-                id(led_feedback_active) = true;
-            - lambda: |-
-                auto call = id(leds_top).turn_on();
-                call.set_brightness(${multi_touch_brightness});
-                call.set_rgb(
-                  id(multi_touch_color)[0] / 100.0f,
-                  id(multi_touch_color)[1] / 100.0f,
-                  id(multi_touch_color)[2] / 100.0f
-                );
-                const std::string effect = "${multi_touch_effect}";
-                if (effect == "Scan") {
-                  call.set_effect(effect);
-                }
-                call.perform();
-            - delay: ${led_feedback_restore_delay}
-            - lambda: |-
-                id(led_feedback_active) = false;
-            - script.execute: refresh_led_default
+      - lambda: |-
+          id(led_feedback_active) = true;
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${multi_touch_brightness});
+          call.set_rgb(
+            id(multi_touch_color)[0] / 100.0f,
+            id(multi_touch_color)[1] / 100.0f,
+            id(multi_touch_color)[2] / 100.0f
+          );
+          const std::string effect = "${multi_touch_effect}";
+          if (effect == "Scan") {
+            call.set_effect(effect);
+          }
+          call.perform();
+      - delay: ${led_feedback_restore_delay}
+      - lambda: |-
+          id(led_feedback_active) = false;
+      - script.execute: refresh_led_default
 
   - id: led_on_long_touch
     mode: restart
     then:
-      - if:
-          condition:
-            lambda: |-
-              return id(relay_state_top_enabled_runtime);
-          then:
-            - lambda: |-
-                id(led_feedback_active) = true;
-            - lambda: |-
-                auto call = id(leds_top).turn_on();
-                call.set_brightness(${long_press_brightness});
-                call.set_rgb(
-                  id(long_press_color)[0] / 100.0f,
-                  id(long_press_color)[1] / 100.0f,
-                  id(long_press_color)[2] / 100.0f
-                );
-                const std::string effect = "${long_press_effect}";
-                if (effect == "Scan") {
-                  call.set_effect(effect);
-                }
-                call.perform();
-            - delay: ${led_feedback_restore_delay}
-            - lambda: |-
-                id(led_feedback_active) = false;
-            - script.execute: refresh_led_default
+      - lambda: |-
+          id(led_feedback_active) = true;
+      - lambda: |-
+          auto call = id(leds_top).turn_on();
+          call.set_brightness(${long_press_brightness});
+          call.set_rgb(
+            id(long_press_color)[0] / 100.0f,
+            id(long_press_color)[1] / 100.0f,
+            id(long_press_color)[2] / 100.0f
+          );
+          const std::string effect = "${long_press_effect}";
+          if (effect == "Scan") {
+            call.set_effect(effect);
+          }
+          call.perform();
+      - delay: ${led_feedback_restore_delay}
+      - lambda: |-
+          id(led_feedback_active) = false;
+      - script.execute: refresh_led_default
 
   - id: maybe_trigger_touchfield_1
     mode: restart
