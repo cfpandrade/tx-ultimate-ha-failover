@@ -6,6 +6,7 @@
 substitutions:
   package_version: "1.3.5"
   ha_verify_ssl: "false"
+  ha_heartbeat_interval: "60s"
   ha_max_failures_before_failover: "10"
   touch_cooldown_1_default: "0"
   touch_cooldown_2_default: "0"
