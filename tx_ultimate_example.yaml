@@ -40,7 +40,7 @@ substitutions:
   button_brightness: "0"
   button_color: "{0,0,90}"           # Button active color (blue)
 
-  relay_state_top_enabled: "true"          # Show persistent top-segment state for active relays
+  relay_state_top_enabled: "false"         # Show persistent top-segment state for active relays (false = temporary feedback only)
   relay_state_top_color: "{0,0,100}"       # Top-segment color when relay is ON
   relay_state_top_brightness_active: "0.30"
   relay_state_top_brightness_idle: "0.12"
@@ -52,14 +52,14 @@ substitutions:
   relay_state_button_brightness_night: "0.04"
 
   led_idle_timeout: "15s"                  # After this time, persistent relay-state LEDs dim down
-  led_feedback_restore_delay: "800ms"      # How long touch feedback stays before returning to relay state
+  led_feedback_restore_delay: "2s"         # How long touch feedback lasts (temporary visual confirmation)
 
   nightlight: "on"                   # "on" or "off"
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"      # Nightlight color (warm white)
 
   touch_brightness: "1"
-  touch_color: "{0,100,100}"         # Touch feedback (cyan)
+  touch_color: "{0,0,100}"           # Touch feedback - blue for toggle lights (full perimeter)
   touch_effect: "Scan"
 
   long_press_brightness: "1"
@@ -71,11 +71,11 @@ substitutions:
   multi_touch_effect: ""             # Empty string = no animation effect
 
   swipe_left_brightness: "1"
-  swipe_left_color: "{0,100,0}"      # Swipe left color (green)
+  swipe_left_color: "{0,100,0}"      # Swipe left - green for opening blinds (full perimeter)
   swipe_left_effect: ""                   # Empty string = no animation effect
 
   swipe_right_brightness: "1"
-  swipe_right_color: "{100,0,70}"    # Swipe right color (purple)
+  swipe_right_color: "{100,0,0}"     # Swipe right - red for closing blinds (full perimeter)
   swipe_right_effect: ""                  # Empty string = no animation effect
 
   # ================================
