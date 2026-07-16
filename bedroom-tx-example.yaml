@@ -1,14 +1,9 @@
-# TX Ultimate HA Failover - User Configuration Example
+# TX Ultimate HA Failover - Bedroom Configuration Example
 #
-# This is an example configuration file showing all available options.
-# Copy this file and customize it for your specific device.
-#
-# Quick Start:
-# 1. Copy this file to your ESPHome folder
-# 2. Rename it (e.g., living_room_tx.yaml)
-# 3. Update the substitutions below
-# 4. Create/update your secrets.yaml
-# 5. Flash: esphome run living_room_tx.yaml
+# This example is optimized for bedrooms:
+# - Nightlight disabled (nightlight: "off")
+# - Failover keeps current state (ha_failover_turn_on_lights: "false")
+# - No auto-on when HA fails (lights stay off if they were off)
 
 substitutions:
   ###### CHANGE ME START ######
@@ -16,8 +11,8 @@ substitutions:
   # ================================
   # DEVICE CONFIGURATION
   # ================================
-  name: 'living-tx'
-  friendly_name: "Living-TX"
+  name: 'bedroom-tx'
+  friendly_name: "Bedroom-TX"
 
   # ================================
   # HOME ASSISTANT SETTINGS
@@ -54,9 +49,9 @@ substitutions:
   led_idle_timeout: "15s"                  # After this time, persistent relay-state LEDs dim down
   led_feedback_restore_delay: "2s"         # How long touch feedback lasts (temporary visual confirmation)
 
-  nightlight: "on"                   # "on" for living/kitchen, "off" for bedrooms
+  nightlight: "off"                  # "off" for bedrooms (no nightlight)
   nightlight_brightness: "0.2"
-  nightlight_color: "{80,70,0}"      # Nightlight color (warm white)
+  nightlight_color: "{80,70,0}"      # Nightlight color (not used when nightlight: "off")
 
   touch_brightness: "1"
   touch_color: "{0,0,100}"           # Touch feedback - blue for toggle lights (full perimeter)
@@ -81,8 +76,8 @@ substitutions:
   # ================================
   # FAILOVER CONFIGURATION
   # ================================
-  ha_failover_turn_on_lights: "true"  # true for living/dining, false for bedrooms
-  ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline
+  ha_failover_turn_on_lights: "false" # false for bedrooms (keep current state when HA fails)
+  ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline (not visible without nightlight)
   ha_heartbeat_interval: "60s"        # How often to check HA connection (default: 60s)
 
   # Relay behavior during NORMAL operation (when HA is online)
@@ -100,9 +95,6 @@ substitutions:
   longitude: !secret longitude
 
   ###### CHANGE ME END ######
-
-  # NOTE: Hardware pin assignments are fixed in the TX Ultimate
-  # and are now defined in tx_ultimate_base.yaml - no need to configure them here!
 
 ##### DO NOT CHANGE ANYTHING BELOW! #####
 
@@ -132,39 +124,11 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  use_address: 192.168.1.50  # Optional: Set your fixed IP here
+  use_address: 192.168.1.51  # Optional: Set your fixed IP here
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
-    ssid: "Tx-Living"
+    ssid: "Tx-Bedroom"
     password: !secret ap_pass
 
 ##### My customization - End #####
-
-# ================================
-# HOW TO GET YOUR HOME ASSISTANT TOKEN
-# ================================
-# 1. Go to your Home Assistant profile (click your username in bottom left)
-# 2. Scroll down to "Long-Lived Access Tokens"
-# 3. Click "CREATE TOKEN"
-# 4. Give it a name like "TX Living Room"
-# 5. Copy the token (it's VERY long, starts with "eyJ...")
-# 6. Format: "Bearer YOUR_LONG_LIVED_TOKEN" and add to secrets.yaml:
-#    tx_status_api_token: "Bearer YOUR_LONG_LIVED_TOKEN"
-#
-# Then in this file, use:
-#    ha_api_token: !secret tx_status_api_token
-
-# ================================
-# SECRETS.YAML EXAMPLE
-# ================================
-# Create a file called 'secrets.yaml' in the same folder with:
-#
-# wifi_ssid: "YourWiFiSSID"
-# wifi_password: "YourWiFiPassword"
-# ap_pass: "FallbackPassword123"
-# api_key: "your-32-character-api-key-here"  # Generate in ESPHome dashboard
-# ota_pass: "your-ota-password"
-# latitude: "00.0000°"
-# longitude: "00.0000°"
-# tx_status_api_token: "Bearer YOUR_LONG_LIVED_TOKEN"

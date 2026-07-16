@@ -21,6 +21,10 @@ When Home Assistant goes offline, your TX Ultimate automatically switches to **m
 
 **No git clone needed!** Just create one YAML file and ESPHome loads everything from GitHub.
 
+**📝 Example files available:**
+- `tx_ultimate_example.yaml` - Living room/kitchen (nightlight enabled, auto-on when HA fails)
+- `bedroom-tx-example.yaml` - Bedroom (nightlight disabled, keep current state when HA fails)
+
 ### Step 1: Create your device YAML
 
 In your ESPHome folder, create a new file (e.g., `living-tx.yaml`):
@@ -221,6 +225,24 @@ ha_heartbeat_interval: "120s"  # Less frequent (reduce network traffic)
 ```
 *Note: Failover activates after 10 consecutive failures. With 60s interval, that's ~10 minutes offline.*
 
+### Nightlight Configuration
+
+The nightlight is **optional** and can be enabled or disabled per device:
+
+**Enable nightlight** (living room, kitchen, hallway):
+```yaml
+nightlight: "on"                    # Automatic based on sunset/sunrise
+nightlight_brightness: "0.2"
+nightlight_color: "{80,70,0}"       # Warm white
+```
+
+**Disable nightlight** (bedroom, bathroom):
+```yaml
+nightlight: "off"                   # No nightlight at all
+```
+
+The nightlight automatically turns on at sunset and off at sunrise using your configured location (`latitude` and `longitude`). When Home Assistant is offline, the nightlight turns red (`ha_failover_nightlight_color`) to indicate the offline status.
+
 ### Relay Behavior (Normal Operation)
 
 Control how each relay behaves **when HA is online**:
@@ -258,7 +280,7 @@ toggle_relay_3_on_touch: "false"  # Relay 3: HA control
 
 ### LED Feedback Behavior
 
-The TX Ultimate provides **temporary visual feedback** on the full LED perimeter for 2 seconds to confirm commands:
+The TX Ultimate provides **temporary visual feedback** on **all 4 LED borders** (top bar + 3 bottom buttons) for 2 seconds to confirm commands:
 
 **Default feedback colors:**
 ```yaml
@@ -315,7 +337,8 @@ Use `Scan` for the top-bar scan animation, or an empty string (`""`) for a solid
 tx-ultimate-ha-failover/
 ├── README.md                    # This file
 ├── tx_ultimate_base.yaml        # Core configuration (loaded from GitHub)
-├── tx_ultimate_example.yaml     # Full example with all options
+├── tx_ultimate_example.yaml     # Full example with all options (living room/kitchen)
+├── bedroom-tx-example.yaml      # Bedroom example (nightlight off, no auto-on)
 ├── secrets.yaml.example         # Template for credentials
 └── .gitignore                   # Prevents secrets from being committed
 ```

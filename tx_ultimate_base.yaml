@@ -1037,18 +1037,26 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          auto call = id(leds_top).turn_on();
-          call.set_brightness(${touch_brightness});
-          call.set_rgb(
-            id(touch_color)[0] / 100.0f,
-            id(touch_color)[1] / 100.0f,
-            id(touch_color)[2] / 100.0f
-          );
+          // Encender todo el perímetro (4 bordes) para feedback
+          const float brightness = ${touch_brightness};
+          const float r = id(touch_color)[0] / 100.0f;
+          const float g = id(touch_color)[1] / 100.0f;
+          const float b = id(touch_color)[2] / 100.0f;
+
+          // Barra superior
+          auto call_top = id(leds_top).turn_on();
+          call_top.set_brightness(brightness);
+          call_top.set_rgb(r, g, b);
           const std::string effect = "${touch_effect}";
           if (effect == "Scan") {
-            call.set_effect(effect);
+            call_top.set_effect(effect);
           }
-          call.perform();
+          call_top.perform();
+
+          // Botones inferiores (los 3 bordes del perímetro inferior)
+          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1060,18 +1068,26 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          auto call = id(leds_top).turn_on();
-          call.set_brightness(${swipe_left_brightness});
-          call.set_rgb(
-            id(swipe_left_color)[0] / 100.0f,
-            id(swipe_left_color)[1] / 100.0f,
-            id(swipe_left_color)[2] / 100.0f
-          );
+          // Encender todo el perímetro (4 bordes) para feedback
+          const float brightness = ${swipe_left_brightness};
+          const float r = id(swipe_left_color)[0] / 100.0f;
+          const float g = id(swipe_left_color)[1] / 100.0f;
+          const float b = id(swipe_left_color)[2] / 100.0f;
+
+          // Barra superior
+          auto call_top = id(leds_top).turn_on();
+          call_top.set_brightness(brightness);
+          call_top.set_rgb(r, g, b);
           const std::string effect = "${swipe_left_effect}";
           if (effect == "Scan") {
-            call.set_effect(effect);
+            call_top.set_effect(effect);
           }
-          call.perform();
+          call_top.perform();
+
+          // Botones inferiores (los 3 bordes del perímetro inferior)
+          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
       - delay: ${swipe_left_duration}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1083,18 +1099,26 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          auto call = id(leds_top).turn_on();
-          call.set_brightness(${swipe_right_brightness});
-          call.set_rgb(
-            id(swipe_right_color)[0] / 100.0f,
-            id(swipe_right_color)[1] / 100.0f,
-            id(swipe_right_color)[2] / 100.0f
-          );
+          // Encender todo el perímetro (4 bordes) para feedback
+          const float brightness = ${swipe_right_brightness};
+          const float r = id(swipe_right_color)[0] / 100.0f;
+          const float g = id(swipe_right_color)[1] / 100.0f;
+          const float b = id(swipe_right_color)[2] / 100.0f;
+
+          // Barra superior
+          auto call_top = id(leds_top).turn_on();
+          call_top.set_brightness(brightness);
+          call_top.set_rgb(r, g, b);
           const std::string effect = "${swipe_right_effect}";
           if (effect == "Scan") {
-            call.set_effect(effect);
+            call_top.set_effect(effect);
           }
-          call.perform();
+          call_top.perform();
+
+          // Botones inferiores (los 3 bordes del perímetro inferior)
+          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
       - delay: ${swipe_right_duration}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1106,18 +1130,26 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          auto call = id(leds_top).turn_on();
-          call.set_brightness(${multi_touch_brightness});
-          call.set_rgb(
-            id(multi_touch_color)[0] / 100.0f,
-            id(multi_touch_color)[1] / 100.0f,
-            id(multi_touch_color)[2] / 100.0f
-          );
+          // Encender todo el perímetro (4 bordes) para feedback
+          const float brightness = ${multi_touch_brightness};
+          const float r = id(multi_touch_color)[0] / 100.0f;
+          const float g = id(multi_touch_color)[1] / 100.0f;
+          const float b = id(multi_touch_color)[2] / 100.0f;
+
+          // Barra superior
+          auto call_top = id(leds_top).turn_on();
+          call_top.set_brightness(brightness);
+          call_top.set_rgb(r, g, b);
           const std::string effect = "${multi_touch_effect}";
           if (effect == "Scan") {
-            call.set_effect(effect);
+            call_top.set_effect(effect);
           }
-          call.perform();
+          call_top.perform();
+
+          // Botones inferiores (los 3 bordes del perímetro inferior)
+          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1129,18 +1161,26 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          auto call = id(leds_top).turn_on();
-          call.set_brightness(${long_press_brightness});
-          call.set_rgb(
-            id(long_press_color)[0] / 100.0f,
-            id(long_press_color)[1] / 100.0f,
-            id(long_press_color)[2] / 100.0f
-          );
+          // Encender todo el perímetro (4 bordes) para feedback
+          const float brightness = ${long_press_brightness};
+          const float r = id(long_press_color)[0] / 100.0f;
+          const float g = id(long_press_color)[1] / 100.0f;
+          const float b = id(long_press_color)[2] / 100.0f;
+
+          // Barra superior
+          auto call_top = id(leds_top).turn_on();
+          call_top.set_brightness(brightness);
+          call_top.set_rgb(r, g, b);
           const std::string effect = "${long_press_effect}";
           if (effect == "Scan") {
-            call.set_effect(effect);
+            call_top.set_effect(effect);
           }
-          call.perform();
+          call_top.perform();
+
+          // Botones inferiores (los 3 bordes del perímetro inferior)
+          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
