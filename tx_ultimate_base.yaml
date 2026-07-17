@@ -8,6 +8,7 @@ substitutions:
   ha_verify_ssl: "false"
   ha_heartbeat_interval: "60s"
   ha_max_failures_before_failover: "10"
+  ha_offline_alert: "on"
   touch_cooldown_1_default: "0"
   touch_cooldown_2_default: "0"
   touch_cooldown_3_default: "0"
@@ -163,6 +164,13 @@ globals:
     type: bool
     restore_value: yes
     initial_value: 'std::string("${nightlight}") == "on"'
+  # Toggle de la alerta visual de HA offline (persistente).
+  # Deshabilitado = el failover funciona igual pero sin encender el perimetro en rojo
+  # (util en dormitorios para que no se encienda en medio de la noche).
+  - id: offline_alert_enabled
+    type: bool
+    restore_value: yes
+    initial_value: 'std::string("${ha_offline_alert}") == "on"'
 
   # Variables para heartbeat HA y estado de relays
   - id: ha_last_seen
@@ -432,6 +440,21 @@ switch:
       - lambda: |-
           id(nightlight_enabled) = false;
       - script.execute: refresh_nightlight
+
+  # Toggle de la alerta visual de HA offline: apagado = no se enciende en rojo
+  - platform: template
+    name: "${friendly_name} Offline Alert"
+    id: offline_alert
+    lambda: |-
+      return id(offline_alert_enabled);
+    turn_on_action:
+      - lambda: |-
+          id(offline_alert_enabled) = true;
+      - script.execute: refresh_led_default
+    turn_off_action:
+      - lambda: |-
+          id(offline_alert_enabled) = false;
+      - script.execute: refresh_led_default
 
   - platform: template
     name: "${friendly_name} Status LEDs"
@@ -706,7 +729,7 @@ script:
             - if:
                 condition:
                   lambda: |-
-                    return id(nightlight).state || id(ha_offline_mode);
+                    return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
                 then:
                   - script.execute: led_on_nightlight
                 else:
@@ -757,7 +780,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_left
@@ -791,7 +814,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_middle
@@ -825,7 +848,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_right
@@ -859,14 +882,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_left
                 brightness: ${nightlight_brightness}
-                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
-                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
-                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
+                red: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_left
@@ -877,14 +900,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_middle
                 brightness: ${nightlight_brightness}
-                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
-                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
-                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
+                red: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_middle
@@ -895,14 +918,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(ha_offline_mode);
+              return id(nightlight).state || (id(ha_offline_mode) && id(offline_alert_enabled));
           then:
             - light.turn_on:
                 id: leds_button_right
                 brightness: ${nightlight_brightness}
-                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
-                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
-                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
+                red: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_right
@@ -915,9 +938,9 @@ script:
       - light.turn_on:
           id: leds_all
           brightness: ${nightlight_brightness}
-          red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
-          green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
-          blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
+          red: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+          green: !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+          blue:  !lambda "return ((id(ha_offline_mode) && id(offline_alert_enabled)) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
 
   - id: led_on_touch
     mode: restart

@@ -71,7 +71,8 @@ substitutions:
   # FAILOVER CONFIGURATION
   # ================================
   ha_failover_turn_on_lights: "false" # false for bedrooms (keep current state when HA fails)
-  ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline (not visible without nightlight)
+  ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline
+  ha_offline_alert: "off"             # "off" for bedrooms: no red perimeter in the middle of the night if HA dies
   ha_heartbeat_interval: "60s"        # How often to check HA connection (default: 60s)
 
   # Relay behavior during NORMAL operation (when HA is online)
