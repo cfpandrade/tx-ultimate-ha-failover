@@ -77,6 +77,7 @@ substitutions:
   # ================================
   ha_failover_turn_on_lights: "true"  # true for living/dining, false for bedrooms
   ha_failover_nightlight_color: "{100,0,0}"  # Red alert color when HA offline
+  ha_offline_alert: "on"              # Default of the "Offline Alert" toggle: light up perimeter when HA is down
   ha_heartbeat_interval: "60s"        # How often to check HA connection (default: 60s)
 
   # Relay behavior during NORMAL operation (when HA is online)

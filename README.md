@@ -215,6 +215,16 @@ ha_failover_nightlight_color: "{100,50,0}"  # Orange (less alarming)
 ha_failover_nightlight_color: "{0,0,100}"  # Blue (informational)
 ```
 
+**Offline alert toggle** — an **"Offline Alert" switch** is exposed in Home Assistant:
+- **ON**: the whole LED perimeter lights up in the alert color while HA is offline
+- **OFF**: failover still works (manual mode, state save/restore), but **no red light** — ideal for bedrooms so it doesn't light up in the middle of the night
+
+The toggle persists across reboots. Its default comes from the `ha_offline_alert` substitution:
+```yaml
+ha_offline_alert: "on"   # living room / kitchen (default)
+ha_offline_alert: "off"  # bedrooms
+```
+
 **Heartbeat check interval** (how often to check HA connection):
 ```yaml
 ha_heartbeat_interval: "60s"   # Default: check every 60 seconds
