@@ -239,7 +239,11 @@ nightlight_color: "{80,70,0}"       # Warm white
 nightlight: "off"                   # No nightlight at all
 ```
 
-The nightlight covers the **entire LED perimeter (all 4 sides)** with a dim light. It turns on automatically at sunset and off at sunrise using your configured location (`latitude` and `longitude`). You can also turn it on manually at any time with the "Nightlight" switch exposed in Home Assistant.
+The nightlight covers the **entire LED perimeter (all 4 sides)** with a dim light.
+
+A **"Nightlight" toggle** is exposed in Home Assistant (its default state comes from the `nightlight` substitution and persists across reboots):
+- **Toggle ON**: the nightlight turns on automatically at sunset and off at sunrise, using your configured location (`latitude` and `longitude`). It never lights up during the day.
+- **Toggle OFF**: the nightlight never turns on.
 
 When Home Assistant is offline, the whole perimeter shows the alert color (`ha_failover_nightlight_color`, red by default) regardless of nightlight settings, so you always notice the offline state.
 
