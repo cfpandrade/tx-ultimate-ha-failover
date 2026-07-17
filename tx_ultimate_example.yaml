@@ -37,14 +37,7 @@ substitutions:
   # ================================
   # LED COLORS - RGB format (0-100)
   # ================================
-  button_brightness: "0"
-  button_color: "{0,0,90}"           # Button active color (blue)
-
-  relay_state_top_enabled: "false"         # Show persistent top-segment state for active relays (false = temporary feedback only)
-  relay_state_top_color: "{0,0,100}"       # Top-segment color when relay is ON
-  relay_state_top_brightness_active: "0.30"
-  relay_state_top_brightness_idle: "0.12"
-  relay_state_top_brightness_night: "0.05"
+  relay_state_top_enabled: "false"         # "true" = bottom button LEDs stay on while relay is ON (status indication)
 
   relay_state_button_color: "{0,0,100}"    # Bottom button color when relay is ON
   relay_state_button_brightness_active: "0.22"

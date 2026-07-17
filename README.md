@@ -58,8 +58,6 @@ substitutions:
   longitude: !secret longitude
 
   # LED Colors (RGB 0-100)
-  button_brightness: "0"
-  button_color: "{0,0,90}"
   nightlight: "on"
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"  # Normal nightlight color
@@ -241,7 +239,9 @@ nightlight_color: "{80,70,0}"       # Warm white
 nightlight: "off"                   # No nightlight at all
 ```
 
-The nightlight automatically turns on at sunset and off at sunrise using your configured location (`latitude` and `longitude`). When Home Assistant is offline, the nightlight turns red (`ha_failover_nightlight_color`) to indicate the offline status.
+The nightlight covers the **entire LED perimeter (all 4 sides)** with a dim light. It turns on automatically at sunset and off at sunrise using your configured location (`latitude` and `longitude`). You can also turn it on manually at any time with the "Nightlight" switch exposed in Home Assistant.
+
+When Home Assistant is offline, the whole perimeter shows the alert color (`ha_failover_nightlight_color`, red by default) regardless of nightlight settings, so you always notice the offline state.
 
 ### Relay Behavior (Normal Operation)
 
@@ -295,12 +295,12 @@ led_feedback_restore_delay: "2s"  # How long the feedback lasts
 relay_state_top_enabled: "false"  # No persistent LEDs, only temporary feedback
 ```
 
-**Enable permanent relay state indication (legacy behavior):**
+**Enable permanent relay state indication:**
 ```yaml
-relay_state_top_enabled: "true"   # Top LED segments stay on when relay is active
+relay_state_top_enabled: "true"   # Bottom button LEDs stay on while their relay is ON
 ```
 
-With `relay_state_top_enabled: "true"`, the top LED segments show which relays are on (blue by default), and touch feedback overlays on top temporarily before restoring to the state indication.
+With `relay_state_top_enabled: "true"`, the **bottom button LEDs** show which relays are on (blue by default), and touch feedback overlays temporarily before restoring the state indication. This can also be toggled at runtime with the "Status LEDs" switch exposed in Home Assistant.
 
 ### LED Colors
 

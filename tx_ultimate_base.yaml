@@ -12,10 +12,6 @@ substitutions:
   touch_cooldown_2_default: "0"
   touch_cooldown_3_default: "0"
   relay_state_top_enabled: "false"
-  relay_state_top_color: "{0,0,100}"
-  relay_state_top_brightness_active: "0.30"
-  relay_state_top_brightness_idle: "0.12"
-  relay_state_top_brightness_night: "0.05"
   relay_state_button_color: "{0,0,100}"
   relay_state_button_brightness_active: "0.22"
   relay_state_button_brightness_idle: "0.10"
@@ -129,10 +125,6 @@ globals:
     type: int [3]
     restore_value: no
     initial_value: ${nightlight_color}
-  - id: button_color
-    type: int [3]
-    restore_value: no
-    initial_value: ${button_color}
   - id: long_press_color
     type: int [3]
     restore_value: no
@@ -157,10 +149,6 @@ globals:
     type: int [3]
     restore_value: no
     initial_value: ${ha_failover_nightlight_color}
-  - id: relay_state_top_color
-    type: int [3]
-    restore_value: no
-    initial_value: ${relay_state_top_color}
   - id: relay_state_button_color
     type: int [3]
     restore_value: no
@@ -169,10 +157,6 @@ globals:
     type: bool
     restore_value: yes
     initial_value: ${relay_state_top_enabled}
-  - id: neopixel_manual_mode
-    type: bool
-    restore_value: no
-    initial_value: 'false'
 
   # Variables para heartbeat HA y estado de relays
   - id: ha_last_seen
@@ -314,7 +298,7 @@ binary_sensor:
       - script.execute: refresh_led_default
 
   - platform: template
-    name: "Swipe left"
+    name: "Swipe Left"
     id: swipe_left
     on_press:
       - delay: ${button_on_time}
@@ -324,7 +308,7 @@ binary_sensor:
       - script.execute: refresh_led_default
 
   - platform: template
-    name: "Swipe_right"
+    name: "Swipe Right"
     id: swipe_right
     on_press:
       - delay: ${button_on_time}
@@ -547,18 +531,6 @@ light:
       - addressable_scan:
           name: "Scan"
 
-  - platform: partition
-    name: "LEDs Top"
-    id: leds_top
-    internal: true
-    segments:
-      - id: leds
-        from: 20
-        to: 26
-    effects:
-      - addressable_scan:
-          name: "Scan"
-
 i2s_audio:
   id: audio_i2s
   i2s_lrclk_pin: GPIO4   # TX Ultimate hardware pin
@@ -707,7 +679,6 @@ script:
       - light.turn_off: leds_button_left
       - light.turn_off: leds_button_middle
       - light.turn_off: leds_button_right
-      - light.turn_off: leds_top
 
   - id: refresh_led_default
     mode: restart
@@ -717,14 +688,11 @@ script:
             lambda: |-
               return !id(led_feedback_active);
           then:
-            # La barra superior solo se usa para feedback temporal
-            - light.turn_off: leds_top
-
             # Capa base: nightlight en todo el perímetro (4 lados) o todo apagado
             - if:
                 condition:
                   lambda: |-
-                    return id(nightlight).state || id(nightlight_active).state;
+                    return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
                 then:
                   - script.execute: led_on_nightlight
                 else:
@@ -775,7 +743,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_left
@@ -809,7 +777,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_middle
@@ -843,7 +811,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_right
@@ -877,14 +845,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_left
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue:  !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_left
@@ -895,14 +863,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_middle
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue:  !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_middle
@@ -913,14 +881,14 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state || id(nightlight_active).state;
+              return id(nightlight).state || id(nightlight_active).state || id(ha_offline_mode);
           then:
             - light.turn_on:
                 id: leds_button_right
                 brightness: ${nightlight_brightness}
-                red: !lambda "return id(nightlight_color)[0]/100.0;"
-                green: !lambda "return id(nightlight_color)[1]/100.0;"
-                blue:  !lambda "return id(nightlight_color)[2]/100.0;"
+                red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+                green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+                blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
           else:
             - light.turn_off:
                 id: leds_button_right
@@ -928,19 +896,14 @@ script:
   - id: led_on_nightlight
     mode: restart
     then:
-      # Nightlight tenue en todo el perímetro (los 4 lados)
+      # Nightlight tenue en todo el perímetro (los 4 lados).
+      # Si HA está offline usa el color de alerta.
       - light.turn_on:
           id: leds_all
           brightness: ${nightlight_brightness}
-          red: !lambda "return id(nightlight_color)[0]/100.0;"
-          green: !lambda "return id(nightlight_color)[1]/100.0;"
-          blue:  !lambda "return id(nightlight_color)[2]/100.0;"
-
-  - id: led_on_release
-    mode: restart
-    then:
-      - light.turn_off:
-          id: leds_top
+          red: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[0] : id(nightlight_color)[0])/100.0;"
+          green: !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[1] : id(nightlight_color)[1])/100.0;"
+          blue:  !lambda "return (id(ha_offline_mode) ? id(ha_failover_nightlight_color)[2] : id(nightlight_color)[2])/100.0;"
 
   - id: led_on_touch
     mode: restart
@@ -1225,101 +1188,24 @@ script:
                   id(toggle_relay_3_on_touch) = true;
 
                   // Opcional: encender luces solo en living/comedor
+                  // (solo los relays que existen segun relay_count)
                   if (id(ha_failover_turn_on_lights)) {
                     ESP_LOGW("heartbeat", "Encendiendo todas las luces por seguridad");
                     id(relay_1).turn_on();
-                    id(relay_2).turn_on();
-                    id(relay_3).turn_on();
+                    if (${relay_count} >= 2) id(relay_2).turn_on();
+                    if (${relay_count} >= 3) id(relay_3).turn_on();
                   }
 
                   id(ha_online).publish_state(false);
                 }
 
-            # Cambiar nightlight a color de alerta si HA está offline
+            # Refrescar LEDs: si HA está offline el perímetro muestra el color de alerta
             - if:
                 condition:
                   lambda: |-
                     return id(ha_offline_mode);
                 then:
-                  - light.turn_on:
-                      id: leds_all
-                      brightness: ${nightlight_brightness}
-                      red: !lambda "return id(ha_failover_nightlight_color)[0]/100.0;"
-                      green: !lambda "return id(ha_failover_nightlight_color)[1]/100.0;"
-                      blue: !lambda "return id(ha_failover_nightlight_color)[2]/100.0;"
-
-  - id: touch_led_marker
-    mode: restart
-    parameters:
-      state: int
-      pos: int
-    then:
-      - if:
-          condition:
-            lambda: |-
-              return state==1;
-          then:
-            # RELEASE
-            - light.turn_off: leds
-
-          else:
-            - if:
-                condition:
-                  lambda: |-
-                    return state==2;
-                then:
-                  # TOUCH
-                  - light.turn_on:
-                      id: leds
-                      red: 1
-                      green: 0
-                      blue: 0
-                  - delay: 6s
-                  - light.turn_off: leds
-
-                else:
-                  - if:
-                      condition:
-                        lambda: |-
-                          return state==11;
-                      then:
-                        # FULL-TOUCH RELEASE
-                        - light.turn_on:
-                            id: leds
-                            brightness: ${multi_touch_brightness}
-                            red: !lambda "return id(multi_touch_color)[0] / 100.0f;"
-                            green: !lambda "return id(multi_touch_color)[1] / 100.0f;"
-                            blue: !lambda "return id(multi_touch_color)[2] / 100.0f;"
-                        - delay: 1s
-                        - light.turn_off: leds
-
-                      else:
-                        # SWIPE
-                        - if:
-                            condition:
-                              lambda: |-
-                                return state==13;
-                            then:
-                              # SWIPE LEFT
-                              - light.turn_on:
-                                  id: leds
-                                  red: 0
-                                  green: 1
-                                  blue: 0
-
-                        - if:
-                            condition:
-                              lambda: |-
-                                return state==12;
-                            then:
-                              # SWIPE RIGHT
-                              - light.turn_on:
-                                  id: leds
-                                  red: 0
-                                  green: 0
-                                  blue: 1
-                        - delay: 1s
-                        - light.turn_off: leds
+                  - script.execute: refresh_led_default
 
 interval:
   # Verificar conexión WiFi cada 10 minutos
@@ -1334,7 +1220,7 @@ interval:
                 level: WARN
                 tag: "wifi"
                 format: "WiFi desconectado por >3 minutos, reiniciando..."
-            - lambda: "ESP.restart();"
+            - lambda: "App.safe_reboot();"
 
   # Heartbeat con Home Assistant
   - interval: ${ha_heartbeat_interval}
