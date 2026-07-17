@@ -90,7 +90,7 @@ substitutions:
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: v1.3.5  # Recommended: pin to a release tag
+    ref: v1.4.0  # Recommended: pin to a release tag
     files: [tx_ultimate_base.yaml]
     refresh: 300s
 
@@ -163,7 +163,7 @@ Or use the ESPHome dashboard **"Install"** button.
 ### Recommended Defaults
 
 - Use `-` in `name` values, not `_`, to avoid mDNS and DHCP issues.
-- Prefer release tags like `v1.3.5` instead of `main` for predictable builds.
+- Prefer release tags like `v1.4.0` instead of `main` for predictable builds.
 - `long_press_effect: ""`, `swipe_left_effect: ""`, and similar empty values are valid and mean "no animation".
 - Keep `ha_verify_ssl: "false"` only if you access HA by IP or with a self-signed certificate. Use `"true"` when your HA certificate is valid and trusted by the device.
 
@@ -392,7 +392,7 @@ tx-ultimate-ha-failover/
 packages:
   remote_package:
     url: https://github.com/cfpandrade/tx-ultimate-ha-failover
-    ref: v1.3.5  # Specific version
+    ref: v1.4.0  # Specific version
     files: [tx_ultimate_base.yaml]
 ```
 
