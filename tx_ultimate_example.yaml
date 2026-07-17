@@ -47,7 +47,8 @@ substitutions:
   led_idle_timeout: "15s"                  # After this time, persistent relay-state LEDs dim down
   led_feedback_restore_delay: "2s"         # How long touch feedback lasts (temporary visual confirmation)
 
-  nightlight: "on"                   # "on" for living/kitchen, "off" for bedrooms
+  nightlight: "on"                   # Default state of the Nightlight toggle ("on" living/kitchen, "off" bedrooms).
+                                     # When enabled it only lights up at night (sunset to sunrise).
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"      # Nightlight color (warm white)
 

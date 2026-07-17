@@ -42,7 +42,8 @@ substitutions:
   led_idle_timeout: "15s"                  # After this time, persistent relay-state LEDs dim down
   led_feedback_restore_delay: "2s"         # How long touch feedback lasts (temporary visual confirmation)
 
-  nightlight: "off"                  # "off" for bedrooms (no nightlight)
+  nightlight: "off"                  # Default state of the Nightlight toggle ("off" = disabled for bedrooms).
+                                     # Can still be enabled anytime from HA; it only lights up at night.
   nightlight_brightness: "0.2"
   nightlight_color: "{80,70,0}"      # Nightlight color (not used when nightlight: "off")
 
