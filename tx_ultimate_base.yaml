@@ -441,8 +441,8 @@ switch:
         - script.execute: refresh_led_default
 
   - platform: template
-    name: "${friendly_name} Top Status LEDs"
-    id: top_leds_enabled
+    name: "${friendly_name} Status LEDs"
+    id: status_leds_enabled
     lambda: |-
       return id(relay_state_top_enabled_runtime);
     turn_on_action:
@@ -534,14 +534,18 @@ light:
         from: 9
         to: 12
 
+  # Perímetro completo (los 4 lados): se usa para nightlight y feedback de gestos
   - platform: partition
-    name: "LEDs Nightlight"
-    id: leds_nightlight
+    name: "LEDs All"
+    id: leds_all
     internal: true
     segments:
       - id: leds
         from: 0
-        to: 27  # Todo el perímetro (barra superior + botones + laterales)
+        to: 27
+    effects:
+      - addressable_scan:
+          name: "Scan"
 
   - platform: partition
     name: "LEDs Top"
@@ -554,33 +558,6 @@ light:
     effects:
       - addressable_scan:
           name: "Scan"
-
-  - platform: partition
-    name: "LEDs Top Right"
-    id: leds_top_right
-    internal: true
-    segments:
-      - id: leds
-        from: 20
-        to: 22
-
-  - platform: partition
-    name: "LEDs Top Middle"
-    id: leds_top_middle
-    internal: true
-    segments:
-      - id: leds
-        from: 23
-        to: 23
-
-  - platform: partition
-    name: "LEDs Top Left"
-    id: leds_top_left
-    internal: true
-    segments:
-      - id: leds
-        from: 24
-        to: 26
 
 i2s_audio:
   id: audio_i2s
@@ -726,13 +703,10 @@ script:
           red: 0%
           green: 0%
           blue: 0%
-      - light.turn_off: leds_nightlight
+      - light.turn_off: leds_all
       - light.turn_off: leds_button_left
       - light.turn_off: leds_button_middle
       - light.turn_off: leds_button_right
-      - light.turn_off: leds_top_left
-      - light.turn_off: leds_top_middle
-      - light.turn_off: leds_top_right
       - light.turn_off: leds_top
 
   - id: refresh_led_default
@@ -743,7 +717,20 @@ script:
             lambda: |-
               return !id(led_feedback_active);
           then:
-            # Solo mostrar estado del relay en botones si relay_state_top_enabled está activo
+            # La barra superior solo se usa para feedback temporal
+            - light.turn_off: leds_top
+
+            # Capa base: nightlight en todo el perímetro (4 lados) o todo apagado
+            - if:
+                condition:
+                  lambda: |-
+                    return id(nightlight).state || id(nightlight_active).state;
+                then:
+                  - script.execute: led_on_nightlight
+                else:
+                  - light.turn_off: leds_all
+
+            # Capa de estado: solo botones inferiores, encima del nightlight
             - if:
                 condition:
                   lambda: |-
@@ -771,72 +758,6 @@ script:
                 else:
                   - script.execute: led_off_button_right
 
-            - if:
-                condition:
-                  lambda: |-
-                    return id(nightlight).state;
-                then:
-                  - script.execute: led_on_nightlight
-                else:
-                  - light.turn_off: leds_nightlight
-
-            - lambda: |-
-                const bool show_nightlight = id(nightlight).state;
-                const bool top_enabled = id(relay_state_top_enabled_runtime);
-                const float active_brightness = ${relay_state_top_brightness_active};
-                const float idle_brightness = ${relay_state_top_brightness_idle};
-                const float night_brightness = ${relay_state_top_brightness_night};
-                const float selected_brightness = show_nightlight
-                  ? night_brightness
-                  : (id(led_idle_mode) ? idle_brightness : active_brightness);
-
-                const float state_red = id(relay_state_top_color)[0] / 100.0f;
-                const float state_green = id(relay_state_top_color)[1] / 100.0f;
-                const float state_blue = id(relay_state_top_color)[2] / 100.0f;
-                const float night_red = id(nightlight_color)[0] / 100.0f;
-                const float night_green = id(nightlight_color)[1] / 100.0f;
-                const float night_blue = id(nightlight_color)[2] / 100.0f;
-
-                const bool left_on = (${relay_count} > 1) && id(relay_1).state;
-                const bool middle_on = (${relay_count} == 3 && id(relay_2).state) || (${relay_count} == 1 && id(relay_1).state);
-                const bool right_on = (${relay_count} == 2 && id(relay_2).state) || (${relay_count} == 3 && id(relay_3).state);
-                const bool any_top_on = ${relay_count} == 1
-                  ? id(relay_1).state
-                  : (left_on || middle_on || right_on);
-
-                // Ensure a previous full-bar effect is cleared before restoring per-zone LEDs.
-                id(leds_top).turn_off().perform();
-
-                auto apply_zone = [&](auto *zone, bool zone_on) {
-                  if (top_enabled && zone_on) {
-                    auto call = zone->turn_on();
-                    call.set_brightness(selected_brightness);
-                    call.set_rgb(state_red, state_green, state_blue);
-                    call.perform();
-                    return;
-                  }
-
-                  if (show_nightlight) {
-                    auto call = zone->turn_on();
-                    call.set_brightness(${nightlight_brightness});
-                    call.set_rgb(night_red, night_green, night_blue);
-                    call.perform();
-                    return;
-                  }
-
-                  zone->turn_off().perform();
-                };
-
-                if (${relay_count} == 1) {
-                  apply_zone(id(leds_top_left), id(relay_1).state);
-                  apply_zone(id(leds_top_middle), id(relay_1).state);
-                  apply_zone(id(leds_top_right), id(relay_1).state);
-                } else {
-                  apply_zone(id(leds_top_left), left_on);
-                  apply_zone(id(leds_top_middle), middle_on);
-                  apply_zone(id(leds_top_right), right_on);
-                }
-
   - id: register_led_activity
     mode: restart
     then:
@@ -854,7 +775,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_left
@@ -888,7 +809,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_middle
@@ -922,7 +843,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_right
@@ -956,7 +877,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_left
@@ -974,7 +895,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_middle
@@ -992,7 +913,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return id(nightlight).state;
+              return id(nightlight).state || id(nightlight_active).state;
           then:
             - light.turn_on:
                 id: leds_button_right
@@ -1007,8 +928,9 @@ script:
   - id: led_on_nightlight
     mode: restart
     then:
+      # Nightlight tenue en todo el perímetro (los 4 lados)
       - light.turn_on:
-          id: leds_nightlight
+          id: leds_all
           brightness: ${nightlight_brightness}
           red: !lambda "return id(nightlight_color)[0]/100.0;"
           green: !lambda "return id(nightlight_color)[1]/100.0;"
@@ -1026,26 +948,19 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          // Encender todo el perímetro (4 bordes) para feedback
-          const float brightness = ${touch_brightness};
-          const float r = id(touch_color)[0] / 100.0f;
-          const float g = id(touch_color)[1] / 100.0f;
-          const float b = id(touch_color)[2] / 100.0f;
-
-          // Barra superior
-          auto call_top = id(leds_top).turn_on();
-          call_top.set_brightness(brightness);
-          call_top.set_rgb(r, g, b);
+          // Feedback en todo el perímetro (los 4 lados, LEDs 0-27)
+          auto call = id(leds_all).turn_on();
+          call.set_brightness(${touch_brightness});
+          call.set_rgb(
+            id(touch_color)[0] / 100.0f,
+            id(touch_color)[1] / 100.0f,
+            id(touch_color)[2] / 100.0f
+          );
           const std::string effect = "${touch_effect}";
           if (effect == "Scan") {
-            call_top.set_effect(effect);
+            call.set_effect(effect);
           }
-          call_top.perform();
-
-          // Botones inferiores (los 3 bordes del perímetro inferior)
-          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          call.perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1057,26 +972,19 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          // Encender todo el perímetro (4 bordes) para feedback
-          const float brightness = ${swipe_left_brightness};
-          const float r = id(swipe_left_color)[0] / 100.0f;
-          const float g = id(swipe_left_color)[1] / 100.0f;
-          const float b = id(swipe_left_color)[2] / 100.0f;
-
-          // Barra superior
-          auto call_top = id(leds_top).turn_on();
-          call_top.set_brightness(brightness);
-          call_top.set_rgb(r, g, b);
+          // Feedback en todo el perímetro (los 4 lados, LEDs 0-27)
+          auto call = id(leds_all).turn_on();
+          call.set_brightness(${swipe_left_brightness});
+          call.set_rgb(
+            id(swipe_left_color)[0] / 100.0f,
+            id(swipe_left_color)[1] / 100.0f,
+            id(swipe_left_color)[2] / 100.0f
+          );
           const std::string effect = "${swipe_left_effect}";
           if (effect == "Scan") {
-            call_top.set_effect(effect);
+            call.set_effect(effect);
           }
-          call_top.perform();
-
-          // Botones inferiores (los 3 bordes del perímetro inferior)
-          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          call.perform();
       - delay: ${swipe_left_duration}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1088,26 +996,19 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          // Encender todo el perímetro (4 bordes) para feedback
-          const float brightness = ${swipe_right_brightness};
-          const float r = id(swipe_right_color)[0] / 100.0f;
-          const float g = id(swipe_right_color)[1] / 100.0f;
-          const float b = id(swipe_right_color)[2] / 100.0f;
-
-          // Barra superior
-          auto call_top = id(leds_top).turn_on();
-          call_top.set_brightness(brightness);
-          call_top.set_rgb(r, g, b);
+          // Feedback en todo el perímetro (los 4 lados, LEDs 0-27)
+          auto call = id(leds_all).turn_on();
+          call.set_brightness(${swipe_right_brightness});
+          call.set_rgb(
+            id(swipe_right_color)[0] / 100.0f,
+            id(swipe_right_color)[1] / 100.0f,
+            id(swipe_right_color)[2] / 100.0f
+          );
           const std::string effect = "${swipe_right_effect}";
           if (effect == "Scan") {
-            call_top.set_effect(effect);
+            call.set_effect(effect);
           }
-          call_top.perform();
-
-          // Botones inferiores (los 3 bordes del perímetro inferior)
-          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          call.perform();
       - delay: ${swipe_right_duration}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1119,26 +1020,19 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          // Encender todo el perímetro (4 bordes) para feedback
-          const float brightness = ${multi_touch_brightness};
-          const float r = id(multi_touch_color)[0] / 100.0f;
-          const float g = id(multi_touch_color)[1] / 100.0f;
-          const float b = id(multi_touch_color)[2] / 100.0f;
-
-          // Barra superior
-          auto call_top = id(leds_top).turn_on();
-          call_top.set_brightness(brightness);
-          call_top.set_rgb(r, g, b);
+          // Feedback en todo el perímetro (los 4 lados, LEDs 0-27)
+          auto call = id(leds_all).turn_on();
+          call.set_brightness(${multi_touch_brightness});
+          call.set_rgb(
+            id(multi_touch_color)[0] / 100.0f,
+            id(multi_touch_color)[1] / 100.0f,
+            id(multi_touch_color)[2] / 100.0f
+          );
           const std::string effect = "${multi_touch_effect}";
           if (effect == "Scan") {
-            call_top.set_effect(effect);
+            call.set_effect(effect);
           }
-          call_top.perform();
-
-          // Botones inferiores (los 3 bordes del perímetro inferior)
-          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          call.perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1150,26 +1044,19 @@ script:
       - lambda: |-
           id(led_feedback_active) = true;
       - lambda: |-
-          // Encender todo el perímetro (4 bordes) para feedback
-          const float brightness = ${long_press_brightness};
-          const float r = id(long_press_color)[0] / 100.0f;
-          const float g = id(long_press_color)[1] / 100.0f;
-          const float b = id(long_press_color)[2] / 100.0f;
-
-          // Barra superior
-          auto call_top = id(leds_top).turn_on();
-          call_top.set_brightness(brightness);
-          call_top.set_rgb(r, g, b);
+          // Feedback en todo el perímetro (los 4 lados, LEDs 0-27)
+          auto call = id(leds_all).turn_on();
+          call.set_brightness(${long_press_brightness});
+          call.set_rgb(
+            id(long_press_color)[0] / 100.0f,
+            id(long_press_color)[1] / 100.0f,
+            id(long_press_color)[2] / 100.0f
+          );
           const std::string effect = "${long_press_effect}";
           if (effect == "Scan") {
-            call_top.set_effect(effect);
+            call.set_effect(effect);
           }
-          call_top.perform();
-
-          // Botones inferiores (los 3 bordes del perímetro inferior)
-          id(leds_button_left).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_middle).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
-          id(leds_button_right).turn_on().set_brightness(brightness).set_rgb(r, g, b).perform();
+          call.perform();
       - delay: ${led_feedback_restore_delay}
       - lambda: |-
           id(led_feedback_active) = false;
@@ -1355,7 +1242,7 @@ script:
                     return id(ha_offline_mode);
                 then:
                   - light.turn_on:
-                      id: leds_nightlight
+                      id: leds_all
                       brightness: ${nightlight_brightness}
                       red: !lambda "return id(ha_failover_nightlight_color)[0]/100.0;"
                       green: !lambda "return id(ha_failover_nightlight_color)[1]/100.0;"
